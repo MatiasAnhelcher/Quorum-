@@ -1,16 +1,60 @@
 import type { ReactNode } from 'react'
 
-export function Anillo({ hechos, total, tamano = 104 }: { hechos: number; total: number; tamano?: number }) {
-  const r = 44
-  const largo = 2 * Math.PI * r
+/** Lugares de las cinco sillas alrededor de la mesa, en sentido horario desde arriba. */
+const SILLAS = [
+  { x: 165, y: 46, yTexto: 14 },
+  { x: 271.5, y: 123.4, yTexto: 165 },
+  { x: 230.8, y: 248.6, yTexto: 292 },
+  { x: 99.2, y: 248.6, yTexto: 292 },
+  { x: 58.5, y: 123.4, yTexto: 165 },
+] as const
+
+export interface Silla {
+  id: string
+  nombre: string
+  votada: boolean
+  sigue: boolean
+}
+
+/**
+ * La mesa del Directorio: una silla por especialista, en el orden del día.
+ * Se enciende cuando el acuerdo está cumplido. El estado nunca depende solo del color:
+ * la silla votada lleva tilde, la que sigue lleva punto y la palabra "sigue".
+ */
+export function Mesa({ sillas }: { sillas: Silla[] }) {
+  const votos = sillas.filter((s) => s.votada).length
+  const resumen = sillas.map((s) => `${s.nombre}: ${s.votada ? 'cumplido' : s.sigue ? 'sigue' : 'pendiente'}`).join(', ')
   return (
-    <svg className="anillo" width={tamano} height={tamano} viewBox="0 0 104 104" role="img" aria-label={`Quórum de hoy: ${hechos} de ${total}`}>
-      <circle cx="52" cy="52" r={r} fill="none" stroke="var(--linea)" strokeWidth="12" />
-      {hechos > 0 && (
-        <circle className="avance" cx="52" cy="52" r={r} fill="none" stroke="var(--acento)" strokeWidth="12" strokeLinecap="round"
-          strokeDasharray={`${(largo * hechos) / total} ${largo}`} transform="rotate(-90 52 52)" />
-      )}
-      <circle cx="52" cy="52" r="26" fill="var(--papel-2)" />
+    <svg className="mesa" viewBox="0 0 330 300" role="img" aria-label={`Mesa del Directorio, ${votos} de ${sillas.length} votos. ${resumen}.`}>
+      <circle cx="165" cy="158" r="112" fill="none" stroke="var(--trazo)" strokeWidth="1.5" strokeDasharray="3 7" />
+      <circle cx="165" cy="158" r="68" fill="var(--papel)" stroke="var(--borde)" strokeWidth="1.5" />
+      <text className="cuenta" x="165" y="166" textAnchor="middle">{votos}<tspan> de {sillas.length}</tspan></text>
+      <text x="165" y="188" textAnchor="middle">votos de hoy</text>
+      {sillas.map((s, i) => {
+        const lugar = SILLAS[i]
+        if (!lugar) return null
+        const color = `var(--${s.id})`
+        return (
+          <g key={s.id}>
+            <g className={`silla${s.votada ? ' votada' : ''}`}>
+              {s.votada ? (
+                <>
+                  <circle cx={lugar.x} cy={lugar.y} r="24" fill={color} />
+                  <path d={`M${lugar.x - 10} ${lugar.y + 0.5}l7 7 13-14`} fill="none" stroke="var(--papel)" strokeWidth="3.5" strokeLinecap="round" strokeLinejoin="round" />
+                </>
+              ) : s.sigue ? (
+                <>
+                  <circle cx={lugar.x} cy={lugar.y} r="25" fill="var(--papel)" stroke={color} strokeWidth="4" />
+                  <circle cx={lugar.x} cy={lugar.y} r="6" fill={color} />
+                </>
+              ) : (
+                <circle cx={lugar.x} cy={lugar.y} r="23" fill="var(--papel)" stroke={color} strokeWidth="2.5" />
+              )}
+            </g>
+            <text className={s.votada || s.sigue ? 'fuerte' : undefined} x={lugar.x} y={lugar.yTexto} textAnchor="middle">{s.nombre}{s.sigue ? ' · sigue' : ''}</text>
+          </g>
+        )
+      })}
     </svg>
   )
 }
@@ -25,7 +69,7 @@ export function Tilde() {
 
 export type Seccion = 'hoy' | 'directorio' | 'proyeccion' | 'seguimiento'
 
-const trazo = { width: 20, height: 20, viewBox: '0 0 24 24', fill: 'none', stroke: 'currentColor', strokeWidth: 2, strokeLinecap: 'round', strokeLinejoin: 'round', 'aria-hidden': true } as const
+const trazo = { width: 22, height: 22, viewBox: '0 0 24 24', fill: 'none', stroke: 'currentColor', strokeWidth: 2, strokeLinecap: 'round', strokeLinejoin: 'round', 'aria-hidden': true } as const
 
 const SECCIONES: { id: Seccion; nombre: string; icono: ReactNode }[] = [
   { id: 'hoy', nombre: 'Hoy', icono: <svg {...trazo}><circle cx="12" cy="12" r="8" /><circle cx="12" cy="12" r="2.5" fill="currentColor" /></svg> },

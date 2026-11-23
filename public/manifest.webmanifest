@@ -5,7 +5,7 @@
   "lang": "es-AR",
   "start_url": ".",
   "display": "standalone",
-  "background_color": "#0B1020",
-  "theme_color": "#0B1020",
+  "background_color": "#F5F6F8",
+  "theme_color": "#F5F6F8",
   "icons": [{ "src": "icono.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any" }]
 }

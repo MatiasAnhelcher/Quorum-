@@ -23,7 +23,7 @@ export function Proyeccion({ perfil, hoy, pesos }: { perfil: Perfil; hoy: string
     <main className="pantalla">
       <header className="columna" style={{ gap: 2 }}>
         <span className="glosa">Si sostenés el plan</span>
-        <h1 style={{ fontSize: 28, letterSpacing: '-0.02em' }}>Proyección</h1>
+        <h1>Proyección</h1>
       </header>
 
       <section className="carta" aria-label="Peso proyectado a 12 meses">
@@ -36,11 +36,11 @@ export function Proyeccion({ perfil, hoy, pesos }: { perfil: Perfil; hoy: string
           ))}
           {HORIZONTES.map((h) => <text key={h.semanas} x={x(h.semanas)} y={ALTO - 4} textAnchor={h.semanas === 52 ? 'end' : 'middle'}>{h.nombre}</text>)}
           <text x={MARGEN.izq} y={ALTO - 4}>Hoy</text>
-          <polygon points={banda} fill="var(--acento)" opacity="0.28" />
-          <polyline points={puntos.map((p) => `${x(p.semanas)},${y((p.minKg + p.maxKg) / 2)}`).join(' ')} fill="none" stroke="var(--acento)" strokeWidth="2" strokeDasharray="4 4" />
-          {reales.map((m) => <circle key={m.fecha} cx={x(diasEntre(perfil.inicio, m.fecha) / 7)} cy={y(m.valor)} r="3.5" fill="var(--tinta)" />)}
+          <polygon points={banda} fill="var(--senal)" opacity="0.22" />
+          <polyline points={puntos.map((p) => `${x(p.semanas)},${y((p.minKg + p.maxKg) / 2)}`).join(' ')} fill="none" stroke="var(--senal)" strokeWidth="2" strokeDasharray="4 4" />
+          {reales.map((m) => <circle key={m.fecha} cx={x(diasEntre(perfil.inicio, m.fecha) / 7)} cy={y(m.valor)} r="4" fill="var(--tinta)" stroke="var(--papel)" strokeWidth="1.5" />)}
         </svg>
-        <p className="rotulo">La banda es el rango esperado en kg. Los puntos blancos son tus pesadas reales{reales.length === 0 ? ': todavía no cargaste ninguna.' : '.'}</p>
+        <p className="rotulo">La banda es el rango esperado en kg. Los puntos son tus pesadas reales{reales.length === 0 ? ': todavía no cargaste ninguna.' : '.'}</p>
       </section>
 
       {HORIZONTES.map((h) => {

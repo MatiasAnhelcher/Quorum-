@@ -45,7 +45,7 @@ export function Seguimiento({ estado, perfil, hoy, cambiar, editar, borrar }: { 
     <main className="pantalla">
       <header className="columna" style={{ gap: 2 }}>
         <span className="glosa">Manda el promedio, no el día</span>
-        <h1 style={{ fontSize: 28, letterSpacing: '-0.02em' }}>Seguimiento</h1>
+        <h1>Seguimiento</h1>
       </header>
 
       <section className="carta" aria-label="Peso">

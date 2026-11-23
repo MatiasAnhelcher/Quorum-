@@ -7,13 +7,17 @@ import { createRequire } from 'node:module'
 const { chromium } = createRequire(import.meta.url)('playwright')
 
 const URL = process.env.QUORUM_URL ?? 'http://localhost:4173/'
-const TAMANOS = [{ nombre: '390', width: 390, height: 844 }, { nombre: '360', width: 360, height: 640 }]
+const TAMANOS = [
+  { nombre: '390', width: 390, height: 844, esquema: 'light' },
+  { nombre: '360', width: 360, height: 640, esquema: 'light' },
+  { nombre: '390-oscuro', width: 390, height: 844, esquema: 'dark' },
+]
 mkdirSync('capturas', { recursive: true })
 const fallas = []
 const navegador = await chromium.launch()
 
 for (const t of TAMANOS) {
-  const pagina = await navegador.newPage({ viewport: { width: t.width, height: t.height }, deviceScaleFactor: 2, locale: 'es-AR' })
+  const pagina = await navegador.newPage({ viewport: { width: t.width, height: t.height }, deviceScaleFactor: 2, locale: 'es-AR', colorScheme: t.esquema })
   pagina.on('pageerror', (e) => fallas.push(`${t.nombre}: error de página: ${e.message}`))
   pagina.on('console', (m) => m.type() === 'error' && fallas.push(`${t.nombre}: consola: ${m.text()}`))
   const captura = async (nombre) => {
@@ -47,11 +51,11 @@ for (const t of TAMANOS) {
 
   await pagina.getByRole('button', { name: 'Hecho', exact: true }).click()
   await pagina.getByRole('button', { name: /25 minutos de foco/ }).click()
-  if (!(await pagina.getByText('Falta 1 acuerdo para tener quórum.').isVisible())) fallas.push(`${t.nombre}: el quórum no cuenta 2 de 5`)
+  if (!(await pagina.getByRole('status').filter({ hasText: 'Falta 1 voto para tener quórum.' }).isVisible())) fallas.push(`${t.nombre}: el quórum no cuenta 2 de 5`)
   await captura('4-hoy')
-  // La acción principal tiene que verse sin desplazar.
+  // La acción principal tiene que verse sin desplazar, por encima de la barra de navegación (72 px).
   const accion = await pagina.getByRole('button', { name: 'Hecho', exact: true }).boundingBox()
-  if (!accion || accion.y + accion.height > t.height) fallas.push(`${t.nombre}: la acción de Hoy queda debajo del pliegue`)
+  if ((!accion || accion.y + accion.height > t.height - 72)) fallas.push(`${t.nombre}: la acción de Hoy queda debajo del pliegue`)
 
   await pagina.getByRole('button', { name: 'Directorio' }).click()
   await captura('5-directorio')
@@ -64,8 +68,8 @@ for (const t of TAMANOS) {
 
   // Los datos sobreviven a cerrar y volver a abrir.
   await pagina.reload()
-  if (!(await pagina.getByText('Hola, Matias').isVisible())) fallas.push(`${t.nombre}: el perfil no sobrevive a recargar`)
-  if (!(await pagina.getByText('Falta 1 acuerdo para tener quórum.').isVisible())) fallas.push(`${t.nombre}: los acuerdos no sobreviven a recargar`)
+  if (!(await pagina.getByRole('heading', { name: 'Tu Directorio sesiona' }).isVisible())) fallas.push(`${t.nombre}: el perfil no sobrevive a recargar`)
+  if (!(await pagina.getByRole('status').filter({ hasText: 'Falta 1 voto para tener quórum.' }).isVisible())) fallas.push(`${t.nombre}: los acuerdos no sobreviven a recargar`)
   await pagina.close()
 }
 

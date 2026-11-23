@@ -87,7 +87,7 @@ export function Diagnostico({ inicial, hoy, listo, cancelar }: { inicial: Perfil
       <div className="pasos" aria-hidden="true">{PASOS.map((_, i) => <span key={i} className={i <= paso ? 'si' : ''} />)}</div>
       <div className="columna">
         <span className="glosa">Diagnóstico · paso {paso + 1} de {PASOS.length}</span>
-        <h1 style={{ fontSize: 28, letterSpacing: '-0.02em' }}>{PASOS[paso]}</h1>
+        <h1>{PASOS[paso]}</h1>
       </div>
 
       {paso === 0 && (

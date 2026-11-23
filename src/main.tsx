@@ -1,4 +1,5 @@
-import '@fontsource-variable/manrope'
+import '@fontsource-variable/bricolage-grotesque'
+import '@fontsource-variable/inter'
 import './estilos.css'
 import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'

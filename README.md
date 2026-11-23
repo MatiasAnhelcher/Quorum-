@@ -7,7 +7,7 @@ Quorum es un sistema operativo de alto rendimiento personal. No es una app de h�
 | Pantalla | Qué resuelve |
 |---|---|
 | Diagnóstico | Alta guiada en cuatro pasos: vos, tus medidas, tu semana real, tu objetivo y presupuesto. |
-| Hoy | Los cinco acuerdos del día, uno por especialista. Hay **quórum** con 3 de 5: un día imperfecto igual cuenta. |
+| Hoy | La mesa del Directorio: cinco sillas, una por especialista, que se encienden al cumplir cada acuerdo. Hay **quórum** con 3 de 5: un día imperfecto igual cuenta. |
 | Directorio | El dictamen de cada especialista, con su plan B para días caóticos y su fuente. |
 | Proyección | Rango de peso esperado a 3, 6 y 12 meses, con tus pesadas reales dibujadas encima. |
 | Seguimiento | Peso (manda el promedio de 7 días), cintura, y todo lo que Quorum sabe de vos para corregirlo o borrarlo. |
@@ -24,7 +24,7 @@ Quorum es un sistema operativo de alto rendimiento personal. No es una app de h�
 
 - React 19, Vite 8 y TypeScript. Sin router ni librería de estado: son cinco pantallas.
 - `src/dominio/` tiene todas las reglas como funciones puras con tests (Vitest). Las pantallas solo las usan.
-- `src/estilos.css` tiene el sistema visual **Cristal** como tokens. Ninguna pantalla escribe un color.
+- `src/estilos.css` tiene el sistema visual **Mesa** como tokens, claro por defecto y oscuro según el sistema. Ninguna pantalla escribe un color.
 - `src/datos/almacen.ts` guarda y carga el estado, con versión.
 
 ## Comandos
@@ -36,7 +36,7 @@ npm run typecheck
 npm test             # también: TZ=Australia/Sydney npm test
 npm run build
 npx vite preview --port 4173 &
-node revisar.mjs     # recorre la app en 390×844 y 360×640, saca capturas y falla si algo se desborda
+node revisar.mjs     # recorre la app en 390×844 y 360×640, en claro y en oscuro, saca capturas y falla si algo se desborda
 ```
 
 `revisar.mjs` usa el Playwright que ya esté instalado en el entorno; no es dependencia del proyecto y por ahora no corre en CI.

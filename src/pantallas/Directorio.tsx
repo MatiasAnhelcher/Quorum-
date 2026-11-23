@@ -6,7 +6,7 @@ export function Directorio({ perfil }: { perfil: Perfil }) {
     <main className="pantalla">
       <header className="columna" style={{ gap: 2 }}>
         <span className="glosa">Cinco especialistas, un solo plan</span>
-        <h1 style={{ fontSize: 28, letterSpacing: '-0.02em' }}>Directorio</h1>
+        <h1>Directorio</h1>
       </header>
       {dictamenes(perfil).map((d) => (
         <article key={d.id} className="carta dictamen">
