@@ -21,3 +21,9 @@ Matias definió la estrella del norte de Quorum: ayudar a prevenir el suicidio e
 ## Pendiente
 
 Revisión de esta pantalla por un profesional de salud mental (condición marcada en el análisis del proyecto; la pantalla avisa que todavía no se hizo). Verificar y sumar líneas de México, España, Colombia y Chile con fuente oficial. Leer el artículo completo de Stanley 2018. Repasar el tono de los textos viejos de la app.
+
+## Agregado: guía de tono y "Antes de escribirle"
+
+Del análisis del proyecto sobre este público se toma la regla de tono: duro con la conducta, nunca con la persona, y nunca contra las mujeres. "Simp" nombra una conducta ("actuar de simp"), no a alguien. "Te usa" solo con un patrón claro; si no, "parece que te usa". En la pantalla de crisis no van exigencias, sarcasmo ni "aguantá".
+
+"Antes de escribirle" son tres preguntas (interés o ansiedad, propuesta concreta, qué hago si no responde). Reemplaza el "no le escribas" por mostrar interés de frente una vez y aceptar la respuesta. No guarda nada. Es criterio propio y la pantalla lo dice.

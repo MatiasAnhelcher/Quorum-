@@ -123,6 +123,16 @@ for (const t of TAMANOS) {
   await pagina.getByLabel(/A quién le digo la verdad/).fill('Mi hermano')
   if (!(await ve(pagina.getByText('1 de 6 pasos escritos. Se guarda solo.')))) fallas.push(`${t.nombre}: el plan para los días negros no cuenta lo escrito`)
   await captura('4m-en-el-fondo')
+  // Antes de escribirle: la ansiedad frena el mensaje; el interés con propuesta lo habilita.
+  await pagina.getByRole('button', { name: 'Herramientas', exact: true }).first().click()
+  await pagina.getByRole('button', { name: /Antes de escribirle/ }).click()
+  await pagina.getByRole('button', { name: 'Estoy ansioso' }).click()
+  if (!(await ve(pagina.getByText('No lo mandes')))) fallas.push(`${t.nombre}: la ansiedad no frena el mensaje`)
+  await pagina.getByRole('button', { name: 'Tengo algo' }).click()
+  await pagina.getByLabel(/Qué le proponés/).fill('Un café el jueves a las 19')
+  await pagina.getByLabel(/Si no responde/).fill('Sigo con mi día y no insisto')
+  if (!(await ve(pagina.getByText('Mandalo una vez')))) fallas.push(`${t.nombre}: el interés con propuesta no habilita el mensaje`)
+  await captura('4n-antes-de-escribirle')
   // El código: una pieza se lee y lleva a su herramienta. La revisión muestra el parte con datos.
   await pagina.getByRole('button', { name: 'Herramientas', exact: true }).first().click()
   await pagina.getByRole('button', { name: /Las ganas no son órdenes/ }).click()

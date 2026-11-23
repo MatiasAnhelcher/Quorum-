@@ -209,3 +209,25 @@ export type PlanSeguro = Partial<Record<(typeof PASOS_DEL_PLAN)[number]['id'], s
 export function pasosDelPlanEscritos(plan: PlanSeguro): number {
   return PASOS_DEL_PLAN.filter((p) => (plan[p.id] ?? '').trim().length >= 3).length
 }
+
+/** Antes de escribirle: tres preguntas para separar las ganas de hablar de la ansiedad por una respuesta. */
+export interface Mensaje {
+  /** 'quiero' si hay algo para decir o proponer; 'ansiedad' si es para calmarse. */
+  motivo?: 'quiero' | 'ansiedad'
+  /** Lo que propone, concreto. */
+  propuesta: string
+  /** Lo que hace después si no responde. */
+  despues: string
+}
+
+export type Veredicto = 'falta' | 'no-escribas' | 'escribi'
+
+/**
+ * Si es ansiedad, no se escribe: un mensaje mandado para calmarse pide otro.
+ * Si hay ganas, se escribe solo con una propuesta concreta y con el después ya decidido.
+ */
+export function veredicto(m: Mensaje): Veredicto {
+  if (m.motivo === 'ansiedad') return 'no-escribas'
+  if (m.motivo === 'quiero' && m.propuesta.trim().length >= 3 && m.despues.trim().length >= 3) return 'escribi'
+  return 'falta'
+}
