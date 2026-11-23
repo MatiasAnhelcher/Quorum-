@@ -20,4 +20,4 @@ Matias definió la estrella del norte de Quorum: ayudar a prevenir el suicidio e
 
 ## Pendiente
 
-Verificar y sumar líneas de México, España, Colombia y Chile con fuente oficial. Leer el artículo completo de Stanley 2018. Repasar el tono de los textos viejos de la app.
+Revisión de esta pantalla por un profesional de salud mental (condición marcada en el análisis del proyecto; la pantalla avisa que todavía no se hizo). Verificar y sumar líneas de México, España, Colombia y Chile con fuente oficial. Leer el artículo completo de Stanley 2018. Repasar el tono de los textos viejos de la app.
