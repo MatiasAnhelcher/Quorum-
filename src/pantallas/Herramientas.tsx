@@ -1,5 +1,8 @@
 import { useEffect, useState, type ReactNode } from 'react'
+import { CODIGO, type Pieza } from '../dominio/codigo'
 import { NOMBRE_CORTO } from '../dominio/directorio'
+import { parteSemanal } from '../dominio/parte'
+import type { Bitacora } from '../dominio/rutina'
 import { EJEMPLOS, PASOS_DE_VISPERA, anotarOla, destrabadas, frenteListo, resumenDeDominio, type Dominio, type Frente, destrabeListo, intencionCompleta, lunesDe, reloj, renglones, repartoCompleto, visperaLista, type Destrabe, type Destrabes, type Intencion, type Intenciones, type Reparto, type Repartos, type Repasos, type Revision, type Revisiones, type Vispera, type Visperas } from '../dominio/herramientas'
 import { actaSemanal, acuerdosDelDia, type IdAcuerdo, type Registro } from '../dominio/hoy'
 import { fechaCorta, sumarDias } from '../dominio/tiempo'
@@ -304,28 +307,40 @@ function LaNocheAntes({ hoy, visperas, guardar }: { hoy: string; visperas: Vispe
 
 const VACIA: Revision = { bien: '', trabo: '', cambio: '' }
 
-function RevisionSemanal({ perfil, hoy, registro, revisiones, guardar }: { perfil: Perfil; hoy: string; registro: Registro; revisiones: Revisiones; guardar: (r: Revisiones) => void }) {
+function RevisionSemanal({ perfil, hoy, registro, bitacora, revisiones, guardar }: { perfil: Perfil; hoy: string; registro: Registro; bitacora: Bitacora; revisiones: Revisiones; guardar: (r: Revisiones) => void }) {
   const semana = lunesDe(hoy)
   const actual = revisiones[semana] ?? VACIA
   const pasada = revisiones[sumarDias(semana, -7)]
   const acta = actaSemanal(registro, hoy)
   const acuerdos = acuerdosDelDia(perfil, hoy)
   const cambiar = (parte: Partial<Revision>) => guardar({ ...revisiones, [semana]: { ...actual, ...parte } })
-  const flojo = [...acuerdos].sort((a, b) => acta[a.id] - acta[b.id])[0]
+  const parte = parteSemanal(registro, bitacora, hoy)
+  const signo = (n: number) => (n > 0 ? `+${n}` : `${n}`)
   return (
     <>
-      <section className="carta chica" aria-label="Acta de los últimos 7 días">
-        <span className="glosa">Votos de los últimos 7 días</span>
-        <ul className="acta">
-          {acuerdos.map((a) => (
-            <li key={a.id}>
-              <span className="punto" style={{ background: `var(--${a.especialista})` }} />
-              <span>{NOMBRE_CORTO[a.especialista]}</span>
-              <span className="rotulo">{acta[a.id]} de 7</span>
-            </li>
-          ))}
-        </ul>
-        {flojo && acta[flojo.id] < 4 && <span className="rotulo">La silla más floja fue {NOMBRE_CORTO[flojo.especialista]}. Es buena candidata para el cambio de la semana.</span>}
+      <section className="carta chica" aria-label="Parte de la semana">
+        <span className="glosa">Parte de los últimos 7 días</span>
+        {parte ? (
+          <>
+            <div className="fila">
+              <span className="columna" style={{ gap: 2 }}><span className="cifra media">{parte.votos}</span><span className="rotulo">votos de 35 · {signo(parte.votos - parte.votosAntes)} contra la semana anterior</span></span>
+              {(parte.kilos > 0 || parte.kilosAntes > 0) && <span className="columna" style={{ gap: 2 }}><span className="cifra media">{parte.kilos.toLocaleString('es-AR')}</span><span className="rotulo">kg movidos · antes {parte.kilosAntes.toLocaleString('es-AR')}</span></span>}
+            </div>
+            <ul className="acta">
+              {acuerdos.map((a) => (
+                <li key={a.id}>
+                  <span className="punto" style={{ background: `var(--${a.especialista})` }} />
+                  <span>{NOMBRE_CORTO[a.especialista]}</span>
+                  <span className="rotulo">{acta[a.id]} de 7</span>
+                </li>
+              ))}
+            </ul>
+            {parte.subio && <span className="rotulo">Lo que más subió: {parte.subio.nombre}, {parte.subio.diferencia} {parte.subio.diferencia === 1 ? 'voto' : 'votos'} más que la semana anterior.</span>}
+            {parte.flojo
+              ? <p className="nota"><b>Consejo de la semana · {parte.flojo.nombre}, {parte.flojo.votos} de 7</b>{parte.flojo.consejo}</p>
+              : <span className="rotulo">Ningún pilar quedó por debajo de 4 de 7. No hay nada que corregir: sostené.</span>}
+          </>
+        ) : <span className="rotulo">Todavía no hay votos para armar el parte. Sin datos no hay consejo.</span>}
       </section>
       {pasada?.cambio && <p className="nota"><b>El cambio que elegiste la semana pasada</b>{pasada.cambio}</p>}
       <section className="carta" aria-label="Preguntas de la revisión">
@@ -349,6 +364,7 @@ function RevisionSemanal({ perfil, hoy, registro, revisiones, guardar }: { perfi
 
 export interface DatosDeHerramientas {
   registro: Registro
+  bitacora: Bitacora
   intenciones: Intenciones
   revisiones: Revisiones
   repasos: Repasos
@@ -360,12 +376,36 @@ export interface DatosDeHerramientas {
 
 export function Herramientas({ perfil, hoy, datos, cambiar, votar }: {
   perfil: Perfil; hoy: string; datos: DatosDeHerramientas
-  cambiar: (parte: Partial<Omit<DatosDeHerramientas, 'registro'>>) => void
-  votar: (id: IdAcuerdo, extra?: Partial<Omit<DatosDeHerramientas, 'registro'>>) => void
+  cambiar: (parte: Partial<Omit<DatosDeHerramientas, 'registro' | 'bitacora'>>) => void
+  votar: (id: IdAcuerdo, extra?: Partial<Omit<DatosDeHerramientas, 'registro' | 'bitacora'>>) => void
 }) {
   const [abierta, setAbierta] = useState<IdHerramienta | null>(null)
+  const [pieza, setPieza] = useState<Pieza | null>(null)
   const hechos = datos.registro[hoy] ?? []
   const actual = LISTA.find((h) => h.id === abierta)
+
+  if (pieza) {
+    const destino = LISTA.find((h) => h.id === pieza.herramienta)
+    return (
+      <main className="pantalla lectura">
+        <header className="columna" style={{ gap: 6, alignItems: 'flex-start' }}>
+          <button type="button" className="enlace" onClick={() => setPieza(null)}>‹ Herramientas</button>
+          <span className="glosa">El código</span>
+          <h1>{pieza.titulo}</h1>
+          <span className="glosa">{pieza.bajada}</span>
+        </header>
+        {pieza.parrafos.map((texto) => <p key={texto}>{texto}</p>)}
+        <section className="sigue" aria-label="Para hoy">
+          <div className="columna" style={{ gap: 3 }}>
+            <span className="rotulo">Para hoy</span>
+            <span className="titulo">{pieza.accion}</span>
+          </div>
+          {destino && <button type="button" className="accion" onClick={() => { setPieza(null); setAbierta(destino.id); window.scrollTo(0, 0) }}>Abrir</button>}
+        </section>
+        <p className="rotulo">Fuente: {pieza.fuente}</p>
+      </main>
+    )
+  }
 
   if (!actual) {
     return (
@@ -386,6 +426,16 @@ export function Herramientas({ perfil, hoy, datos, cambiar, votar }: {
             <span className="glosa">{h.para}</span>
           </button>
         ))}
+        <header className="columna" style={{ gap: 2, marginTop: 12 }}>
+          <span className="glosa">Dos minutos de lectura y una acción</span>
+          <h2>El código</h2>
+        </header>
+        {CODIGO.map((c) => (
+          <button key={c.id} type="button" className="carta chica herramienta" onClick={() => { setPieza(c); window.scrollTo(0, 0) }}>
+            <b>{c.titulo}</b>
+            <span className="glosa">{c.bajada}</span>
+          </button>
+        ))}
         <p className="rotulo">Pocas y buenas: una herramienta entra solo si tiene respaldo o se usa todas las semanas.</p>
       </main>
     )
@@ -398,7 +448,7 @@ export function Herramientas({ perfil, hoy, datos, cambiar, votar }: {
   else if (actual.id === 'impulso') cuerpo = <Impulso hoy={hoy} dominio={datos.dominio} guardar={(dominio) => cambiar({ dominio })} />
   else if (actual.id === 'reparto') cuerpo = <LoQueDepende hoy={hoy} repartos={datos.repartos} guardar={(repartos) => cambiar({ repartos })} />
   else if (actual.id === 'vispera') cuerpo = <LaNocheAntes hoy={hoy} visperas={datos.visperas} guardar={(visperas) => cambiar({ visperas })} />
-  else cuerpo = <RevisionSemanal perfil={perfil} hoy={hoy} registro={datos.registro} revisiones={datos.revisiones} guardar={(revisiones) => cambiar({ revisiones })} />
+  else cuerpo = <RevisionSemanal perfil={perfil} hoy={hoy} registro={datos.registro} bitacora={datos.bitacora} revisiones={datos.revisiones} guardar={(revisiones) => cambiar({ revisiones })} />
 
   return (
     <main className="pantalla">

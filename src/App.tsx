@@ -1,4 +1,5 @@
 import { useCallback, useState } from 'react'
+import { flushSync } from 'react-dom'
 import { Barra, type Seccion } from './componentes'
 import { borrarTodo, cargar, ESTADO_VACIO, guardar, type Estado } from './datos/almacen'
 import { alternar, type IdAcuerdo } from './dominio/hoy'
@@ -10,6 +11,8 @@ import { Herramientas } from './pantallas/Herramientas'
 import { Hoy } from './pantallas/Hoy'
 import { Proyeccion } from './pantallas/Proyeccion'
 import { Seguimiento } from './pantallas/Seguimiento'
+
+const ORDEN: Seccion[] = ['hoy', 'entreno', 'herramientas', 'directorio', 'progreso']
 
 export function App() {
   const [estado, setEstado] = useState<Estado>(cargar)
@@ -27,9 +30,17 @@ export function App() {
 
   const ir = (s: Seccion) => {
     // Tocar la sección de nuevo la reinicia: sirve para volver a la lista desde adentro de una herramienta.
-    setVisita((v) => v + 1)
-    setSeccion(s)
-    window.scrollTo(0, 0)
+    const cambio = () => {
+      setVisita((v) => v + 1)
+      setSeccion(s)
+      window.scrollTo(0, 0)
+    }
+    // Cambio de sección con fundido y desplazamiento, donde el navegador lo permite y la persona no pidió menos movimiento.
+    const quieto = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches
+    if (!quieto && s !== seccion && 'startViewTransition' in document) {
+      document.documentElement.dataset.sentido = ORDEN.indexOf(s) >= ORDEN.indexOf(seccion) ? 'adelante' : 'atras'
+      document.startViewTransition(() => flushSync(cambio))
+    } else cambio()
   }
 
   const { perfil } = estado
@@ -80,7 +91,7 @@ export function App() {
           key={visita}
           perfil={perfil}
           hoy={hoy}
-          datos={{ registro: estado.registro, intenciones: estado.intenciones ?? {}, revisiones: estado.revisiones ?? {}, repasos: estado.repasos ?? {}, destrabes: estado.destrabes ?? {}, repartos: estado.repartos ?? {}, visperas: estado.visperas ?? {}, dominio: estado.dominio }}
+          datos={{ registro: estado.registro, bitacora: estado.bitacora ?? {}, intenciones: estado.intenciones ?? {}, revisiones: estado.revisiones ?? {}, repasos: estado.repasos ?? {}, destrabes: estado.destrabes ?? {}, repartos: estado.repartos ?? {}, visperas: estado.visperas ?? {}, dominio: estado.dominio }}
           cambiar={(parte) => cambiar({ ...estado, ...parte })}
           votar={votar}
         />
