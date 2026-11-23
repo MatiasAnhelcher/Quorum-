@@ -1,4 +1,4 @@
-import { useState, type FormEvent } from 'react'
+import { useState, type FormEvent, type ReactNode } from 'react'
 import { kg } from '../componentes'
 import { aplicarTema, cargarTema, leerCopia, type Estado, type Tema } from '../datos/almacen'
 import { planDeComida } from '../dominio/cuerpo'
@@ -27,7 +27,7 @@ const valido = (texto: string, min: number, max: number) => {
   return texto.trim() !== '' && n >= min && n <= max ? n : null
 }
 
-export function Seguimiento({ estado, perfil, hoy, cambiar, editar, borrar }: { estado: Estado; perfil: Perfil; hoy: string; cambiar: (e: Estado) => void; editar: () => void; borrar: () => void }) {
+export function Seguimiento({ estado, perfil, hoy, cambiar, editar, borrar, arriba }: { estado: Estado; perfil: Perfil; hoy: string; cambiar: (e: Estado) => void; editar: () => void; borrar: () => void; arriba?: ReactNode }) {
   const [peso, setPeso] = useState('')
   const [cintura, setCintura] = useState('')
   const [confirmando, setConfirmando] = useState(false)
@@ -80,6 +80,7 @@ export function Seguimiento({ estado, perfil, hoy, cambiar, editar, borrar }: { 
         <span className="glosa">Manda el promedio, no el día</span>
         <h1>Seguimiento</h1>
       </header>
+      {arriba}
 
       <section className="carta" aria-label="Peso">
         <div className="fila">

@@ -2,7 +2,8 @@ import { describe, expect, it } from 'vitest'
 import { cinturaObjetivo, gastoEnReposo, grasaEstimada, pesoDeReferencia, planDeComida } from './cuerpo'
 import { dictamenes } from './directorio'
 import { actaSemanal, acuerdosDelDia, alternar, constanciaSemanal, estaAchicado, hayQuorum, sesionDelDia, type Registro } from './hoy'
-import { rutinaDelDia, SESIONES } from './rutina'
+import { EJEMPLOS, faseDeRespiracion, intencionCompleta, lunesDe, reloj } from './herramientas'
+import { anotarSerie, borrarUltimaSerie, leerRango, rutinaDelDia, segundosDeDescanso, semanaDeEntreno, SESIONES, sugerencia, ultimaVez, type Bitacora } from './rutina'
 import { curva, proyectar } from './proyeccion'
 import { leerCopia } from '../datos/almacen'
 import { ajustePropuesto, leerRitmo, registrar, tendencia } from './seguimiento'
@@ -206,7 +207,7 @@ describe('rutina', () => {
     const r = rutinaDelDia(matias, '2026-11-23')
     expect(r?.sesion).toBe('Torso completo')
     expect(r?.ejercicios).toHaveLength(7)
-    expect(r?.ejercicios[0]).toEqual({ nombre: 'Press de banca en Smith', series: '3×6–10', descanso: '2–3 min' })
+    expect(r?.ejercicios[0]).toMatchObject({ nombre: 'Press de banca en Smith', series: '3×6–10', descanso: '2–3 min' })
     expect(r?.minima.map((x) => x.nombre)).toEqual(['Press de banca en Smith', 'Remo en máquina con pecho apoyado'])
   })
   it('no hay rutina en día de descanso', () => {
@@ -245,5 +246,83 @@ describe('acta y acuerdos que se achican', () => {
   })
   it('vuelve a su tamaño en cuanto sale un día', () => {
     expect(estaAchicado({ ...r, '2026-11-23': ['foco'] }, '2026-11-24', matias.inicio, 'foco')).toBe(false)
+  })
+})
+
+describe('entreno guiado', () => {
+  it('cada ejercicio tiene rango legible, descanso en segundos y ficha de técnica', () => {
+    for (const ejercicios of Object.values(SESIONES)) {
+      for (const ej of ejercicios) {
+        const rango = leerRango(ej.series)
+        expect(rango.series).toBeGreaterThanOrEqual(2)
+        expect(rango.max).toBeGreaterThan(rango.min)
+        expect(segundosDeDescanso(ej.descanso)).toBeGreaterThanOrEqual(60)
+        expect(ej.claves.length).toBeGreaterThanOrEqual(2)
+        expect(ej.musculos.length).toBeGreaterThan(3)
+        expect(ej.error.length).toBeGreaterThan(10)
+      }
+    }
+  })
+  it('lee rangos por repeticiones y por tiempo', () => {
+    expect(leerRango('3×6–10')).toEqual({ series: 3, min: 6, max: 10, porTiempo: false })
+    expect(leerRango('3×10–12 por brazo')).toMatchObject({ series: 3, min: 10, max: 12, porTiempo: false })
+    expect(leerRango('3×30–45 s')).toEqual({ series: 3, min: 30, max: 45, porTiempo: true })
+    expect(segundosDeDescanso('2–3 min')).toBe(180)
+    expect(segundosDeDescanso('60–90 s')).toBe(90)
+  })
+  it('arma la semana de lunes a domingo con la sesión de cada día', () => {
+    const semana = semanaDeEntreno(matias, '2026-11-25')
+    expect(semana.map((d) => d.fecha)).toEqual(['2026-11-23', '2026-11-24', '2026-11-25', '2026-11-26', '2026-11-27', '2026-11-28', '2026-11-29'])
+    expect(semana.map((d) => d.sesion)).toEqual(['Torso completo', 'Pierna A', 'Tirón', 'Empuje', 'Pierna B', null, null])
+    expect(semanaDeEntreno(matias, '2026-11-29')[0]?.fecha).toBe('2026-11-23')
+  })
+  it('anota series, corrige la última y encuentra la vez anterior', () => {
+    let b: Bitacora = {}
+    b = anotarSerie(b, '2026-11-16', 'Press de banca en Smith', { kg: 40, reps: 10 })
+    b = anotarSerie(b, '2026-11-23', 'Press de banca en Smith', { kg: 40, reps: 9 })
+    b = anotarSerie(b, '2026-11-23', 'Press de banca en Smith', { kg: 40, reps: 99 })
+    b = borrarUltimaSerie(b, '2026-11-23', 'Press de banca en Smith')
+    expect(b['2026-11-23']?.['Press de banca en Smith']).toEqual([{ kg: 40, reps: 9 }])
+    expect(ultimaVez(b, 'Press de banca en Smith', '2026-11-23')).toEqual({ fecha: '2026-11-16', series: [{ kg: 40, reps: 10 }] })
+    expect(ultimaVez(b, 'Curl femoral', '2026-11-23')).toBeNull()
+  })
+  it('doble progresión: sube al llegar al tope, baja si no llega al mínimo, y si no suma una repetición', () => {
+    const press = { series: '3×6–10' }
+    expect(sugerencia(press, null)).toEqual({ indicacion: 'primera-vez', kg: null })
+    expect(sugerencia(press, [{ kg: 40, reps: 10 }, { kg: 40, reps: 10 }, { kg: 40, reps: 10 }])).toEqual({ indicacion: 'subir', kg: 40 })
+    expect(sugerencia(press, [{ kg: 40, reps: 10 }, { kg: 40, reps: 10 }])).toEqual({ indicacion: 'sumar-repeticion', kg: 40 })
+    expect(sugerencia(press, [{ kg: 40, reps: 10 }, { kg: 40, reps: 8 }, { kg: 40, reps: 7 }])).toEqual({ indicacion: 'sumar-repeticion', kg: 40 })
+    expect(sugerencia(press, [{ kg: 45, reps: 7 }, { kg: 45, reps: 5 }, { kg: 45, reps: 4 }])).toEqual({ indicacion: 'bajar', kg: 45 })
+  })
+})
+
+describe('herramientas', () => {
+  it('un plan si-entonces vale cuando las dos partes dicen algo', () => {
+    expect(intencionCompleta(undefined)).toBe(false)
+    expect(intencionCompleta({ si: 'suena la alarma', entonces: '' })).toBe(false)
+    expect(intencionCompleta({ si: '  ', entonces: 'me levanto' })).toBe(false)
+    for (const ejemplo of Object.values(EJEMPLOS)) expect(intencionCompleta(ejemplo)).toBe(true)
+  })
+  it('la semana de la revisión empieza el lunes', () => {
+    expect(lunesDe('2026-11-23')).toBe('2026-11-23')
+    expect(lunesDe('2026-11-29')).toBe('2026-11-23')
+    expect(lunesDe('2026-11-30')).toBe('2026-11-30')
+  })
+  it('muestra el cronómetro en minutos y segundos', () => {
+    expect(reloj(1500)).toBe('25:00')
+    expect(reloj(59.2)).toBe('01:00')
+    expect(reloj(-3)).toBe('00:00')
+  })
+  it('la respiración alterna 4 segundos de entrada y 6 de salida', () => {
+    expect(faseDeRespiracion(0)).toEqual({ fase: 'entra', resta: 4, ciclo: 1 })
+    expect(faseDeRespiracion(4)).toEqual({ fase: 'sale', resta: 6, ciclo: 1 })
+    expect(faseDeRespiracion(13)).toEqual({ fase: 'entra', resta: 1, ciclo: 2 })
+  })
+  it('la copia de seguridad conserva la bitácora y las herramientas, y acepta copias viejas', () => {
+    const base = { version: 1 as const, perfil: matias, registro: {}, pesos: [], cinturas: [] }
+    const nuevo = { ...base, bitacora: { '2026-11-23': { Plancha: [{ kg: 0, reps: 40 }] } }, intenciones: { foco: EJEMPLOS.foco }, revisiones: {}, repasos: { '2026-11-23': 'hola' } }
+    expect(leerCopia(JSON.stringify(nuevo))).toEqual(nuevo)
+    expect(leerCopia(JSON.stringify(base))).toEqual(base)
+    expect(leerCopia(JSON.stringify({ ...base, bitacora: 'x' }))).toEqual(base)
   })
 })

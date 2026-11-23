@@ -1,4 +1,6 @@
+import type { Intenciones, Repasos, Revisiones } from '../dominio/herramientas'
 import type { Registro } from '../dominio/hoy'
+import type { Bitacora } from '../dominio/rutina'
 import type { Medicion, Perfil } from '../dominio/tipos'
 
 /** Todo lo que Quorum sabe de la persona. Vive solo en su teléfono. */
@@ -8,6 +10,14 @@ export interface Estado {
   registro: Registro
   pesos: Medicion[]
   cinturas: Medicion[]
+  /** Series registradas en el gimnasio. */
+  bitacora?: Bitacora
+  /** Planes si-entonces, uno por acuerdo. */
+  intenciones?: Intenciones
+  /** Revisión de cada semana. */
+  revisiones?: Revisiones
+  /** Lo que la persona escribió de memoria después de cada bloque de foco. */
+  repasos?: Repasos
 }
 
 const CLAVE = 'quorum.estado'
@@ -60,7 +70,16 @@ export function leerCopia(texto: string): Estado | null {
     if (typeof perfil !== 'object' || perfil === null || typeof perfil.nombre !== 'string' || typeof perfil.pesoKg !== 'number' || typeof perfil.inicio !== 'string') return null
     if (typeof registro !== 'object' || registro === null || !Object.values(registro).every(Array.isArray)) return null
     if (!esMediciones(pesos) || !esMediciones(cinturas)) return null
-    return { version: 1, perfil, registro, pesos, cinturas }
+    const esObjeto = (v: unknown) => typeof v === 'object' && v !== null && !Array.isArray(v)
+    const { bitacora, intenciones, revisiones, repasos } = dato
+    // Lo que se sumó después del primer formato es opcional: una copia vieja sigue sirviendo.
+    return {
+      version: 1, perfil, registro, pesos, cinturas,
+      ...(esObjeto(bitacora) ? { bitacora } : {}),
+      ...(esObjeto(intenciones) ? { intenciones } : {}),
+      ...(esObjeto(revisiones) ? { revisiones } : {}),
+      ...(esObjeto(repasos) ? { repasos } : {}),
+    }
   } catch {
     return null
   }

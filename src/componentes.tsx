@@ -83,15 +83,16 @@ export function Tilde() {
   )
 }
 
-export type Seccion = 'hoy' | 'directorio' | 'proyeccion' | 'seguimiento'
+export type Seccion = 'hoy' | 'entreno' | 'herramientas' | 'directorio' | 'progreso'
 
 const trazo = { width: 22, height: 22, viewBox: '0 0 24 24', fill: 'none', stroke: 'currentColor', strokeWidth: 2, strokeLinecap: 'round', strokeLinejoin: 'round', 'aria-hidden': true } as const
 
 const SECCIONES: { id: Seccion; nombre: string; icono: ReactNode }[] = [
   { id: 'hoy', nombre: 'Hoy', icono: <svg {...trazo}><circle cx="12" cy="12" r="8" /><circle cx="12" cy="12" r="2.5" fill="currentColor" /></svg> },
+  { id: 'entreno', nombre: 'Entreno', icono: <svg {...trazo}><path d="M6.5 7v10M17.5 7v10M3.5 9.5v5M20.5 9.5v5M6.5 12h11" /></svg> },
+  { id: 'herramientas', nombre: 'Herramientas', icono: <svg {...trazo}><rect x="4" y="4" width="6.5" height="6.5" rx="1.5" /><rect x="13.5" y="4" width="6.5" height="6.5" rx="1.5" /><rect x="4" y="13.5" width="6.5" height="6.5" rx="1.5" /><circle cx="16.75" cy="16.75" r="3.25" /></svg> },
   { id: 'directorio', nombre: 'Directorio', icono: <svg {...trazo}><circle cx="6" cy="9" r="2.5" /><circle cx="12" cy="7" r="2.5" /><circle cx="18" cy="9" r="2.5" /><path d="M3 18c1-3 5-3 6 0M9 17c1-4 5-4 6 0M15 18c1-3 5-3 6 0" /></svg> },
-  { id: 'proyeccion', nombre: 'Proyección', icono: <svg {...trazo}><path d="M3 17l6-6 4 4 8-9M15 6h6v6" /></svg> },
-  { id: 'seguimiento', nombre: 'Seguimiento', icono: <svg {...trazo}><path d="M5 20v-6M12 20V5M19 20v-9" /></svg> },
+  { id: 'progreso', nombre: 'Progreso', icono: <svg {...trazo}><path d="M3 17l6-6 4 4 8-9M15 6h6v6" /></svg> },
 ]
 
 export function Barra({ actual, ir }: { actual: Seccion; ir: (s: Seccion) => void }) {

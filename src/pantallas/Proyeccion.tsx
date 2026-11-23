@@ -1,3 +1,4 @@
+import type { ReactNode } from 'react'
 import { kg } from '../componentes'
 import { cinturaObjetivo, pesoDeReferencia } from '../dominio/cuerpo'
 import { curva, HORIZONTES, proyectar } from '../dominio/proyeccion'
@@ -8,7 +9,7 @@ const ANCHO = 320
 const ALTO = 170
 const MARGEN = { izq: 34, der: 8, arriba: 10, abajo: 22 }
 
-export function Proyeccion({ perfil, hoy, pesos }: { perfil: Perfil; hoy: string; pesos: Medicion[] }) {
+export function Proyeccion({ perfil, hoy, pesos, arriba }: { perfil: Perfil; hoy: string; pesos: Medicion[]; arriba?: ReactNode }) {
   const puntos = curva(perfil)
   const reales = pesos.filter((m) => diasEntre(perfil.inicio, m.fecha) >= 0 && diasEntre(perfil.inicio, m.fecha) <= 364)
   const todos = [...puntos.flatMap((p) => [p.minKg, p.maxKg]), ...reales.map((m) => m.valor)]
@@ -25,6 +26,7 @@ export function Proyeccion({ perfil, hoy, pesos }: { perfil: Perfil; hoy: string
         <span className="glosa">Si sostenés el plan</span>
         <h1>Proyección</h1>
       </header>
+      {arriba}
 
       <section className="carta" aria-label="Peso proyectado a 12 meses">
         <svg className="grafico" viewBox={`0 0 ${ANCHO} ${ALTO}`} role="img" aria-label={`Peso esperado de ${kg(perfil.pesoKg)} kg hoy a entre ${kg(proyectar(perfil, 52).minKg)} y ${kg(proyectar(perfil, 52).maxKg)} kg en 12 meses`}>

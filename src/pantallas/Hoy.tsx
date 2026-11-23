@@ -1,11 +1,12 @@
-import { Mesa, Tilde } from '../componentes'
+import { Mesa, Tilde, type Seccion } from '../componentes'
 import { NOMBRE_CORTO } from '../dominio/directorio'
+import { intencionCompleta, type Intenciones } from '../dominio/herramientas'
 import { actaSemanal, acuerdosDelDia, alternar, constanciaSemanal, cumplidos, MAYORIA, type Registro } from '../dominio/hoy'
 import { rutinaDelDia } from '../dominio/rutina'
 import { diasEntre, fechaLarga } from '../dominio/tiempo'
 import type { Perfil } from '../dominio/tipos'
 
-export function Hoy({ perfil, hoy, registro, cambiar }: { perfil: Perfil; hoy: string; registro: Registro; cambiar: (r: Registro) => void }) {
+export function Hoy({ perfil, hoy, registro, intenciones, cambiar, ir }: { perfil: Perfil; hoy: string; registro: Registro; intenciones: Intenciones; cambiar: (r: Registro) => void; ir: (s: Seccion) => void }) {
   const acuerdos = acuerdosDelDia(perfil, hoy, registro)
   const rutina = rutinaDelDia(perfil, hoy)
   const acta = actaSemanal(registro, hoy)
@@ -15,6 +16,7 @@ export function Hoy({ perfil, hoy, registro, cambiar }: { perfil: Perfil; hoy: s
   const semana = constanciaSemanal(registro, hoy)
   const diasConQuorum = semana.filter(Boolean).length
   const completo = hechos.length === acuerdos.length
+  const plan = siguiente ? intenciones[siguiente.id] : undefined
 
   return (
     <main className="pantalla">
@@ -45,7 +47,7 @@ export function Hoy({ perfil, hoy, registro, cambiar }: { perfil: Perfil; hoy: s
           <div className="columna" style={{ gap: 3 }}>
             <span className="rotulo">Sigue · {siguiente.hora} · {NOMBRE_CORTO[siguiente.especialista]}</span>
             <span className="titulo">{siguiente.titulo}</span>
-            <span className="rotulo">{siguiente.detalle}</span>
+            <span className="rotulo">{intencionCompleta(plan) ? `Tu plan: si ${plan.si}, ${plan.entonces}.` : siguiente.detalle}</span>
           </div>
           <button type="button" className="accion" onClick={() => cambiar(alternar(registro, hoy, siguiente.id))}>Hecho</button>
         </section>
@@ -70,27 +72,18 @@ export function Hoy({ perfil, hoy, registro, cambiar }: { perfil: Perfil; hoy: s
         })}
       </section>
 
-      {rutina && (
-        <details className="carta chica rutina">
-          <summary>
-            <span className="columna" style={{ gap: 2 }}>
-              <span className="glosa">Rutina de hoy</span>
-              <b>{rutina.sesion} · {rutina.ejercicios.length} ejercicios</b>
-            </span>
-            <span className="rotulo ver" aria-hidden="true" />
-          </summary>
-          <ol>
-            {rutina.ejercicios.map((ej) => (
-              <li key={ej.nombre}>
-                <span>{ej.nombre}</span>
-                <span className="rotulo">{ej.series} · descanso {ej.descanso}</span>
-              </li>
-            ))}
-          </ol>
-          <p className="nota"><b>Día sin tiempo</b>{rutina.minima.map((ej) => ej.nombre).join(' y ')}, tres series cada uno. Veinte minutos.</p>
-          <span className="rotulo">Cada serie termina con 1 o 2 repeticiones en reserva. Cuando llegás al tope del rango en todas las series, la próxima vez subís el peso.</span>
-        </details>
-      )}
+      <div className="atajos">
+        <button type="button" className="carta chica atajo" onClick={() => ir('entreno')}>
+          <span className="glosa">Rutina de hoy</span>
+          <b>{rutina ? `${rutina.sesion} · ${rutina.ejercicios.length} ejercicios` : 'Descanso y caminata'}</b>
+          <span className="rotulo">Técnica, series y qué peso usar</span>
+        </button>
+        <button type="button" className="carta chica atajo" onClick={() => ir('herramientas')}>
+          <span className="glosa">Herramientas</span>
+          <b>Foco, planes y cierre</b>
+          <span className="rotulo">Para la mente y los hábitos</span>
+        </button>
+      </div>
 
       <section className="carta chica" aria-label="Constancia de la semana">
         <div className="fila">
