@@ -64,7 +64,7 @@ export function App() {
   return (
     <div className="marco">
       {falla && <p className="aviso" role="alert" style={{ position: 'relative', zIndex: 2, padding: '12px 20px 0' }}>No se pudo guardar en este teléfono. Revisá el espacio libre o el modo privado.</p>}
-      {seccion === 'hoy' && <Hoy perfil={perfil} hoy={hoy} registro={estado.registro} intenciones={estado.intenciones ?? {}} cambiar={(registro) => cambiar({ ...estado, registro })} ir={ir} />}
+      {seccion === 'hoy' && <Hoy perfil={perfil} hoy={hoy} registro={estado.registro} intenciones={estado.intenciones ?? {}} dominio={estado.dominio} cambiar={(registro) => cambiar({ ...estado, registro })} ir={ir} />}
       {seccion === 'entreno' && (
         <Entreno
           perfil={perfil}

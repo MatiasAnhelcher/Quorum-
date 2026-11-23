@@ -168,6 +168,20 @@ h1 { font-family: var(--titulos); font-size: 30px; font-weight: 700; letter-spac
 .mesa .asiento:active .silla { transform: scale(0.92); }
 /* En celulares bajos la mesa se achica para que la acción principal quede a la vista. */
 @media (max-height: 700px) { .mesa { width: min(100%, 270px); } }
+/* El camino: tres números que solo suman. */
+.camino { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px 12px; padding: 14px 16px; background: var(--papel); border: 1px solid var(--borde); border-radius: var(--radio-m); }
+.camino .tramo { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.camino .pie-camino { grid-column: 1 / -1; }
+.principio { margin: 0; padding: 4px 0 4px 16px; border-left: 3px solid var(--tinta); display: flex; flex-direction: column; gap: 6px; }
+.principio p { margin: 0; font-family: var(--titulos); font-size: 18px; line-height: 1.3; }
+/* Entrada escalonada: cada bloque de la pantalla sube y aparece, uno detrás del otro. */
+@keyframes entrar { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: none; } }
+.pantalla > * { animation: entrar 420ms cubic-bezier(0.2, 0.7, 0.2, 1) both; }
+.pantalla > *:nth-child(2) { animation-delay: 60ms; }
+.pantalla > *:nth-child(3) { animation-delay: 120ms; }
+.pantalla > *:nth-child(4) { animation-delay: 180ms; }
+.pantalla > *:nth-child(5) { animation-delay: 240ms; }
+.pantalla > *:nth-child(n + 6) { animation-delay: 300ms; }
 .estado { text-align: center; font-size: 14px; color: var(--glosa); }
 .estado b { color: var(--tinta); }
 

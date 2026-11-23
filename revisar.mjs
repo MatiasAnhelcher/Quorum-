@@ -24,7 +24,7 @@ for (const t of TAMANOS) {
     await pagina.waitForTimeout(700)
     const desborde = await pagina.evaluate(() => document.documentElement.scrollWidth - window.innerWidth)
     if (desborde > 0) fallas.push(`${t.nombre}: ${nombre} se desborda ${desborde}px a lo ancho`)
-    await pagina.screenshot({ path: `capturas/${t.nombre}-${nombre}.png`, fullPage: true })
+    await pagina.screenshot({ path: `capturas/${t.nombre}-${nombre}.png`, fullPage: true, animations: 'disabled' })
   }
   // Reloj fijo: lunes 23/11/2026 a las 11:00, hora local.
   await pagina.clock.install({ time: new Date(2026, 10, 23, 11, 0) })

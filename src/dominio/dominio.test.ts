@@ -5,6 +5,7 @@ import { actaSemanal, acuerdosDelDia, alternar, constanciaSemanal, estaAchicado,
 import { EJEMPLOS, PASOS_DE_VISPERA, anotarOla, destrabadas, frenteListo, resumenDeDominio, destrabeListo, intencionCompleta, lunesDe, reloj, renglones, repartoCompleto, visperaLista } from './herramientas'
 import { anotarSerie, borrarUltimaSerie, leerRango, rutinaDelDia, segundosDeDescanso, semanaDeEntreno, SESIONES, sugerencia, ultimaVez, type Bitacora } from './rutina'
 import { curva, proyectar } from './proyeccion'
+import { PRINCIPIOS, camino, principioDelDia, semanaFirme } from './camino'
 import { leerCopia } from '../datos/almacen'
 import { ajustePropuesto, leerRitmo, registrar, tendencia } from './seguimiento'
 import { fechaLarga, fechaLocal, horasDeSueno, sumarDias, sumarMinutos } from './tiempo'
@@ -293,6 +294,50 @@ describe('entreno guiado', () => {
     expect(sugerencia(press, [{ kg: 40, reps: 10 }, { kg: 40, reps: 10 }])).toEqual({ indicacion: 'sumar-repeticion', kg: 40 })
     expect(sugerencia(press, [{ kg: 40, reps: 10 }, { kg: 40, reps: 8 }, { kg: 40, reps: 7 }])).toEqual({ indicacion: 'sumar-repeticion', kg: 40 })
     expect(sugerencia(press, [{ kg: 45, reps: 7 }, { kg: 45, reps: 5 }, { kg: 45, reps: 4 }])).toEqual({ indicacion: 'bajar', kg: 45 })
+  })
+})
+
+describe('el camino', () => {
+  // Matias entrena 5 días: lunes a viernes. Inicio lunes 2/11/2026.
+  const p = { diasEntreno: 5 as const, inicio: '2026-11-02' }
+  const semana = (lunes: string, entrenos: number) => Object.fromEntries(Array.from({ length: entrenos }, (_, i) => [sumarDias(lunes, i), ['entreno' as const]]))
+  it('una semana es firme con los entrenos menos uno, o con quórum 5 días', () => {
+    expect(semanaFirme(p, semana('2026-11-02', 4), '2026-11-02')).toBe(true)
+    expect(semanaFirme(p, semana('2026-11-02', 3), '2026-11-02')).toBe(false)
+    const quorum = Object.fromEntries(Array.from({ length: 5 }, (_, i) => [sumarDias('2026-11-03', i), ['comida' as const, 'foco' as const, 'sueno' as const]]))
+    expect(semanaFirme(p, quorum, '2026-11-02')).toBe(true)
+    // El voto de entreno de un día de descanso (caminata) no cuenta como entreno.
+    expect(semanaFirme(p, { '2026-11-07': ['entreno'], '2026-11-08': ['entreno'], '2026-11-02': ['entreno'], '2026-11-03': ['entreno'] }, '2026-11-02')).toBe(false)
+  })
+  it('la semana en curso no corta la racha, y una semana floja no borra lo acumulado', () => {
+    const r = { ...semana('2026-11-02', 5), ...semana('2026-11-09', 4), ...semana('2026-11-16', 1), ...semana('2026-11-23', 1) }
+    const c = camino(p, r, '2026-11-23')
+    expect(c.dia).toBe(22)
+    expect(c.racha).toBe(0)
+    expect(c.mejorRacha).toBe(2)
+    expect(c.semanasFirmes).toBe(2)
+    expect(c.entrenos).toBe(11)
+    expect(c.rango).toBe('Iniciado')
+    expect(c.proximo).toEqual({ nombre: 'Constante', faltan: 2 })
+    const seguido = camino(p, { ...semana('2026-11-09', 4), ...semana('2026-11-16', 5), ...semana('2026-11-23', 1) }, '2026-11-23')
+    expect(seguido.racha).toBe(2)
+    expect(camino(p, { ...semana('2026-11-16', 5), ...semana('2026-11-23', 4) }, '2026-11-26').racha).toBe(2)
+  })
+  it('el primer día arranca en cero sin romperse', () => {
+    expect(camino(p, {}, '2026-11-02')).toEqual({ dia: 1, racha: 0, mejorRacha: 0, semanasFirmes: 0, rango: 'Iniciado', proximo: { nombre: 'Constante', faltan: 4 }, entrenos: 0, quorums: 0 })
+  })
+  it('los rangos suben con semanas firmes acumuladas', () => {
+    const muchas = Object.assign({}, ...Array.from({ length: 12 }, (_, i) => semana(sumarDias('2026-11-02', i * 7), 4)))
+    const c = camino(p, muchas, sumarDias('2026-11-02', 12 * 7 - 1))
+    expect(c.semanasFirmes).toBe(12)
+    expect(c.rango).toBe('Firme')
+    expect(c.proximo).toEqual({ nombre: 'Forjado', faltan: 14 })
+  })
+  it('el principio del día es el mismo todo el día y rota', () => {
+    expect(principioDelDia('2026-11-02', '2026-11-02')).toBe(PRINCIPIOS[0])
+    expect(principioDelDia('2026-11-02', '2026-11-03')).toBe(PRINCIPIOS[1])
+    expect(principioDelDia('2026-11-02', sumarDias('2026-11-02', PRINCIPIOS.length))).toBe(PRINCIPIOS[0])
+    expect(principioDelDia('2026-11-05', '2026-11-02')).toBeDefined()
   })
 })
 
