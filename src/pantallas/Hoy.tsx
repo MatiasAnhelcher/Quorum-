@@ -7,7 +7,7 @@ import { rutinaDelDia } from '../dominio/rutina'
 import { fechaLarga } from '../dominio/tiempo'
 import type { Perfil } from '../dominio/tipos'
 
-export function Hoy({ perfil, hoy, registro, intenciones, dominio, cambiar, ir }: { perfil: Perfil; hoy: string; registro: Registro; intenciones: Intenciones; dominio?: Dominio; cambiar: (r: Registro) => void; ir: (s: Seccion) => void }) {
+export function Hoy({ perfil, hoy, registro, intenciones, dominio, cambiar, ir }: { perfil: Perfil; hoy: string; registro: Registro; intenciones: Intenciones; dominio?: Dominio; cambiar: (r: Registro) => void; ir: (s: Seccion, herramienta?: 'fondo') => void }) {
   const acuerdos = acuerdosDelDia(perfil, hoy, registro)
   const rutina = rutinaDelDia(perfil, hoy)
   const acta = actaSemanal(registro, hoy)
@@ -138,6 +138,7 @@ export function Hoy({ perfil, hoy, registro, intenciones, dominio, cambiar, ir }
         </ul>
         <span className="rotulo">Una semana es firme con tus entrenos hechos (se perdona uno) o con quórum 5 días. Un mal día no rompe nada, y si un acuerdo falla tres días seguidos, se achica.</span>
       </section>
+      <button type="button" className="enlace salida" onClick={() => ir('herramientas', 'fondo')}>¿Estás en el fondo? Entrá acá.</button>
     </main>
   )
 }

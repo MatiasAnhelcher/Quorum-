@@ -184,6 +184,9 @@ h1 { font-family: var(--titulos); font-size: 30px; font-weight: 700; letter-spac
 ::view-transition-new(root) { animation: llegar-der 320ms cubic-bezier(0.2, 0.7, 0.2, 1) 60ms both; }
 :root[data-sentido='atras']::view-transition-old(root) { animation-name: salir-der; }
 :root[data-sentido='atras']::view-transition-new(root) { animation-name: llegar-izq; }
+a.contorno { color: var(--tinta); }
+a.accion, a.contorno { text-decoration: none; display: inline-flex; align-items: center; justify-content: center; }
+.salida { align-self: center; color: var(--glosa); font-size: 14px; min-height: 44px; }
 .lectura > p { font-size: 17px; line-height: 1.55; margin: 0; }
 /* Entrada escalonada: cada bloque de la pantalla sube y aparece, uno detrás del otro. */
 @keyframes entrar { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: none; } }

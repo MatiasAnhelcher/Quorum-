@@ -19,6 +19,7 @@ export function App() {
   const [seccion, setSeccion] = useState<Seccion>('hoy')
   const [editando, setEditando] = useState(false)
   const [visita, setVisita] = useState(0)
+  const [abrir, setAbrir] = useState<'fondo' | undefined>(undefined)
   const [progreso, setProgreso] = useState<'seguimiento' | 'proyeccion'>('seguimiento')
   const [falla, setFalla] = useState(false)
   const hoy = fechaLocal(new Date())
@@ -28,10 +29,11 @@ export function App() {
     setFalla(!guardar(nuevo))
   }, [])
 
-  const ir = (s: Seccion) => {
+  const ir = (s: Seccion, herramienta?: 'fondo') => {
     // Tocar la sección de nuevo la reinicia: sirve para volver a la lista desde adentro de una herramienta.
     const cambio = () => {
       setVisita((v) => v + 1)
+      setAbrir(herramienta)
       setSeccion(s)
       window.scrollTo(0, 0)
     }
@@ -91,7 +93,8 @@ export function App() {
           key={visita}
           perfil={perfil}
           hoy={hoy}
-          datos={{ registro: estado.registro, bitacora: estado.bitacora ?? {}, intenciones: estado.intenciones ?? {}, revisiones: estado.revisiones ?? {}, repasos: estado.repasos ?? {}, destrabes: estado.destrabes ?? {}, repartos: estado.repartos ?? {}, visperas: estado.visperas ?? {}, dominio: estado.dominio }}
+          abrir={abrir}
+          datos={{ registro: estado.registro, bitacora: estado.bitacora ?? {}, intenciones: estado.intenciones ?? {}, revisiones: estado.revisiones ?? {}, repasos: estado.repasos ?? {}, destrabes: estado.destrabes ?? {}, repartos: estado.repartos ?? {}, visperas: estado.visperas ?? {}, dominio: estado.dominio, planSeguro: estado.planSeguro ?? {} }}
           cambiar={(parte) => cambiar({ ...estado, ...parte })}
           votar={votar}
         />
@@ -113,7 +116,7 @@ export function App() {
           }}
         />
       )}
-      <Barra actual={seccion} ir={ir} />
+      <Barra actual={seccion} ir={(s) => ir(s)} />
     </div>
   )
 }

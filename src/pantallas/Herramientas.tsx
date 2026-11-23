@@ -3,12 +3,14 @@ import { CODIGO, type Pieza } from '../dominio/codigo'
 import { NOMBRE_CORTO } from '../dominio/directorio'
 import { parteSemanal } from '../dominio/parte'
 import type { Bitacora } from '../dominio/rutina'
-import { EJEMPLOS, PASOS_DE_VISPERA, anotarOla, destrabadas, frenteListo, resumenDeDominio, type Dominio, type Frente, destrabeListo, intencionCompleta, lunesDe, reloj, renglones, repartoCompleto, visperaLista, type Destrabe, type Destrabes, type Intencion, type Intenciones, type Reparto, type Repartos, type Repasos, type Revision, type Revisiones, type Vispera, type Visperas } from '../dominio/herramientas'
+import { BUSCADOR_DE_LINEAS, EJEMPLOS, LINEAS, PASOS_DEL_PLAN, PASOS_DE_VISPERA, pasosDelPlanEscritos, type PlanSeguro, anotarOla, destrabadas, frenteListo, resumenDeDominio, type Dominio, type Frente, destrabeListo, intencionCompleta, lunesDe, reloj, renglones, repartoCompleto, visperaLista, type Destrabe, type Destrabes, type Intencion, type Intenciones, type Reparto, type Repartos, type Repasos, type Revision, type Revisiones, type Vispera, type Visperas } from '../dominio/herramientas'
 import { actaSemanal, acuerdosDelDia, type IdAcuerdo, type Registro } from '../dominio/hoy'
 import { fechaCorta, sumarDias } from '../dominio/tiempo'
 import type { Perfil } from '../dominio/tipos'
 
-type IdHerramienta = 'destrabar' | 'impulso' | 'reparto' | 'foco' | 'si-entonces' | 'vispera' | 'revision'
+type IdHerramienta = 'fondo' | 'destrabar' | 'impulso' | 'reparto' | 'foco' | 'si-entonces' | 'vispera' | 'revision'
+
+const FONDO = { id: 'fondo' as const, nombre: 'Si estás en el fondo', para: 'Para cuando no ves salida. Ayuda ahora y un plan para los días negros.', especialista: 'sueno', minutos: '' }
 
 const LISTA: { id: IdHerramienta; nombre: string; para: string; especialista: string; minutos: string }[] = [
   { id: 'destrabar', nombre: 'Hecho, no perfecto', para: 'Achicar lo que venís pateando hasta que se pueda terminar hoy.', especialista: 'estratega', minutos: '10 min' },
@@ -158,6 +160,48 @@ function Destrabar({ hoy, destrabes, guardar }: { hoy: string; destrabes: Destra
       )}
       {semana > 0 && <p className="rotulo">Destrabaste {semana} {semana === 1 ? 'tarea' : 'tareas'} en los últimos 7 días.</p>}
       <p className="rotulo">Respaldo: ponerle hora y lugar a la acción es un plan si-entonces (Gollwitzer y Sheeran, 2006, 94 pruebas, d = 0,65). Achicar la tarea y los 10 minutos son práctica de oficio, no un número con estudio propio.</p>
+    </>
+  )
+}
+
+function EnElFondo({ plan, guardar }: { plan: PlanSeguro; guardar: (p: PlanSeguro) => void }) {
+  const escritos = pasosDelPlanEscritos(plan)
+  return (
+    <>
+      <section className="carta" aria-label="Ayuda ahora">
+        <h2>No lo pases solo</h2>
+        <p>Si estás pensando en matarte, o sentís que no hay salida, llamá ahora. Del otro lado hay una persona preparada para escucharte, gratis y sin juzgarte. Si tu vida corre peligro en este momento, llamá a emergencias o andá a una guardia.</p>
+        {LINEAS.map((l) => (
+          <div key={l.lugar} className="columna" style={{ gap: 6 }}>
+            <span className="glosa">{l.lugar} · {l.nombre}</span>
+            <div className="fila" style={{ justifyContent: 'flex-start', flexWrap: 'wrap', gap: 8 }}>
+              {l.telefonos.map((t) => <a key={t} className="accion" href={`tel:${t.replace(/\s/g, '')}`}>Llamar al {t}</a>)}
+            </div>
+            {l.nota && <span className="rotulo">{l.nota}</span>}
+          </div>
+        ))}
+        <a className="contorno" href={BUSCADOR_DE_LINEAS} target="_blank" rel="noreferrer">Buscar la línea de mi país</a>
+      </section>
+      <section className="carta chica" aria-label="Lo que es verdad">
+        <p>Lo que sentís ahora es dolor, y el dolor más fuerte no es para siempre aunque hoy parezca que sí. Pedir ayuda no te hace menos hombre: es lo más difícil y lo más valiente que se puede hacer en el fondo.</p>
+        <p className="glosa">Hoy alcanza con una sola cosa: decirle a una persona cómo estás de verdad.</p>
+      </section>
+      <section className="carta" aria-label="Mi plan para los días negros">
+        <h2>Mi plan para los días negros</h2>
+        <p className="glosa">Se arma con la cabeza fría para usarlo cuando no se puede pensar. Seis pasos, en orden. Queda solo en tu teléfono.</p>
+        {PASOS_DEL_PLAN.map((p, i) => (
+          <div key={p.id} className="campo">
+            <label htmlFor={`plan-${p.id}`}>{i + 1}. {p.pregunta}</label>
+            <textarea id={`plan-${p.id}`} rows={2} value={plan[p.id] ?? ''} placeholder={p.ayuda} onChange={(e) => guardar({ ...plan, [p.id]: e.target.value })} />
+          </div>
+        ))}
+        <span className="rotulo">{escritos} de {PASOS_DEL_PLAN.length} pasos escritos. Se guarda solo.</span>
+      </section>
+      <section className="carta chica" aria-label="Si es un compa">
+        <b>Si el que está mal es un compa</b>
+        <p className="glosa">Tomalo en serio si habla de querer morirse, de no tener salida o de ser una carga, si se aísla, regala sus cosas, se despide, o pasa de golpe de estar muy mal a estar muy tranquilo. No lo dejes solo, escuchalo sin retarlo y ayudalo a llamar a una línea o a llegar a una guardia.</p>
+      </section>
+      <p className="rotulo">Fuentes: señales de alerta y línea 988, Instituto Nacional de Salud Mental de Estados Unidos (página en español, revisada en agosto de 2024). Líneas de Argentina, según Find A Helpline. El plan sigue los seis pasos de la Intervención de Planificación de Seguridad (Stanley, Brown y otros, JAMA Psychiatry, 2018;75(9):894-900): en guardias de hospitales de veteranos, quienes armaron el plan con un profesional y recibieron seguimiento tuvieron cerca de la mitad de conductas suicidas en seis meses. De ese estudio leí resúmenes, no el artículo completo, y ahí el plan se arma con un profesional: esta pantalla no lo reemplaza.</p>
     </>
   )
 }
@@ -372,17 +416,18 @@ export interface DatosDeHerramientas {
   repartos: Repartos
   visperas: Visperas
   dominio: Dominio | undefined
+  planSeguro: PlanSeguro
 }
 
-export function Herramientas({ perfil, hoy, datos, cambiar, votar }: {
-  perfil: Perfil; hoy: string; datos: DatosDeHerramientas
+export function Herramientas({ perfil, hoy, datos, abrir, cambiar, votar }: {
+  perfil: Perfil; hoy: string; datos: DatosDeHerramientas; abrir?: IdHerramienta
   cambiar: (parte: Partial<Omit<DatosDeHerramientas, 'registro' | 'bitacora'>>) => void
   votar: (id: IdAcuerdo, extra?: Partial<Omit<DatosDeHerramientas, 'registro' | 'bitacora'>>) => void
 }) {
-  const [abierta, setAbierta] = useState<IdHerramienta | null>(null)
+  const [abierta, setAbierta] = useState<IdHerramienta | null>(abrir ?? null)
   const [pieza, setPieza] = useState<Pieza | null>(null)
   const hechos = datos.registro[hoy] ?? []
-  const actual = LISTA.find((h) => h.id === abierta)
+  const actual = abierta === 'fondo' ? FONDO : LISTA.find((h) => h.id === abierta)
 
   if (pieza) {
     const destino = LISTA.find((h) => h.id === pieza.herramienta)
@@ -436,6 +481,10 @@ export function Herramientas({ perfil, hoy, datos, cambiar, votar }: {
             <span className="glosa">{c.bajada}</span>
           </button>
         ))}
+        <button type="button" className="carta chica herramienta" onClick={() => { setAbierta('fondo'); window.scrollTo(0, 0) }}>
+          <b>{FONDO.nombre}</b>
+          <span className="glosa">{FONDO.para}</span>
+        </button>
         <p className="rotulo">Pocas y buenas: una herramienta entra solo si tiene respaldo o se usa todas las semanas.</p>
       </main>
     )
@@ -444,6 +493,7 @@ export function Herramientas({ perfil, hoy, datos, cambiar, votar }: {
   let cuerpo: ReactNode
   if (actual.id === 'foco') cuerpo = <Foco hoy={hoy} repasos={datos.repasos} votado={hechos.includes('foco')} guardar={(texto) => { const repasos = { ...datos.repasos, [hoy]: texto }; if (hechos.includes('foco')) cambiar({ repasos }); else votar('foco', { repasos }) }} />
   else if (actual.id === 'si-entonces') cuerpo = <SiEntonces perfil={perfil} hoy={hoy} intenciones={datos.intenciones} guardar={(intenciones) => cambiar({ intenciones })} />
+  else if (actual.id === 'fondo') cuerpo = <EnElFondo plan={datos.planSeguro} guardar={(planSeguro) => cambiar({ planSeguro })} />
   else if (actual.id === 'destrabar') cuerpo = <Destrabar hoy={hoy} destrabes={datos.destrabes} guardar={(destrabes) => cambiar({ destrabes })} />
   else if (actual.id === 'impulso') cuerpo = <Impulso hoy={hoy} dominio={datos.dominio} guardar={(dominio) => cambiar({ dominio })} />
   else if (actual.id === 'reparto') cuerpo = <LoQueDepende hoy={hoy} repartos={datos.repartos} guardar={(repartos) => cambiar({ repartos })} />

@@ -115,6 +115,14 @@ for (const t of TAMANOS) {
   await pagina.getByRole('button', { name: 'Sigo en el camino' }).click()
   if (!(await ve(pagina.getByText('vez que no cediste')))) fallas.push(`${t.nombre}: la caída borró las ganas superadas`)
   await captura('4j-impulso')
+  // Si estás en el fondo: se llega desde Hoy, muestra líneas para llamar y guarda el plan.
+  await pagina.getByRole('button', { name: 'Hoy', exact: true }).click()
+  await pagina.getByRole('button', { name: /Estás en el fondo/ }).click()
+  if (!(await ve(pagina.getByRole('link', { name: 'Llamar al 135' })))) fallas.push(`${t.nombre}: la pantalla de crisis no muestra la línea para llamar`)
+  if ((await pagina.getByRole('link', { name: 'Llamar al 135' }).getAttribute('href')) !== 'tel:135') fallas.push(`${t.nombre}: el botón de la línea no marca el número`)
+  await pagina.getByLabel(/A quién le digo la verdad/).fill('Mi hermano')
+  if (!(await ve(pagina.getByText('1 de 6 pasos escritos. Se guarda solo.')))) fallas.push(`${t.nombre}: el plan para los días negros no cuenta lo escrito`)
+  await captura('4m-en-el-fondo')
   // El código: una pieza se lee y lleva a su herramienta. La revisión muestra el parte con datos.
   await pagina.getByRole('button', { name: 'Herramientas', exact: true }).first().click()
   await pagina.getByRole('button', { name: /Las ganas no son órdenes/ }).click()

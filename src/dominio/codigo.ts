@@ -10,11 +10,53 @@ export interface Pieza {
   /** Lo que se hace hoy con esto. */
   accion: string
   /** Herramienta de la app que lo pone en práctica, si hay. */
-  herramienta?: 'impulso' | 'reparto' | 'si-entonces' | 'destrabar' | 'vispera'
+  herramienta?: 'fondo' | 'impulso' | 'reparto' | 'si-entonces' | 'destrabar' | 'vispera'
   fuente: string
 }
 
 export const CODIGO: Pieza[] = [
+  {
+    id: 'mensaje',
+    titulo: 'Tu día no depende de un mensaje',
+    bajada: 'Para dejar de ser simp: de vivir pendiente de si te escribe.',
+    parrafos: [
+      'Si estás bien cuando te habla y mal cuando no, no estás enamorado: estás enganchado. Le diste a otra persona el control remoto de tu día, y ni siquiera te lo pidió.',
+      'Mirar el teléfono cada cinco minutos no hace que llegue el mensaje. Lo único que hace es entrenarte para necesitarlo. Cada vez que revisás, el enganche crece.',
+      'Epicteto lo separa en dos: lo que ella siente, decide y hace no depende de vos. Lo que vos hacés con tus horas, sí. El que pone su paz en lo que no maneja, dice, termina trabado, quejándose y culpando a todos.',
+      'Nadie respeta al que mendiga atención, y vos tampoco te respetás cuando lo hacés. Interés que hay que rogar no es interés. Volvé a tu vida: entreno, trabajo, tus compas. El que está ocupado construyendo no tiene tiempo de esperar un visto.',
+    ],
+    accion: 'Hoy no le escribís primero ni revisás si te vio. Esa hora va a un entreno.',
+    herramienta: 'reparto',
+    fuente: 'Epicteto, Manual, sección 1. Es filosofía, no un estudio. El resto es criterio de Quorum, dicho sin vueltas.',
+  },
+  {
+    id: 'celos',
+    titulo: 'Los celos son una película que te armás vos',
+    bajada: 'Celos, miedo a que esté con otro y ganas de controlar.',
+    parrafos: [
+      'No sabés con quién está. Lo que tenés es una película que armó tu cabeza con dos datos y mucho miedo, y la estás mirando como si fuera un noticiero. Epicteto: lo que perturba no son los hechos, es la opinión sobre los hechos.',
+      'La verdad dura es esta: si quiere irse, se va a ir, y no hay vigilancia que lo impida. Y si no quiere irse, la vigilancia la empuja. Revisar un teléfono, pedir explicaciones de cada minuto o prohibir no es de hombre fuerte: es miedo con voz gruesa, y es una falta de respeto hacia ella y hacia vos.',
+      'Lo tuyo es otra cosa: ser un hombre con el que valga la pena quedarse, decir de frente lo que te molesta una sola vez, y tener el valor de irte si la respuesta no te sirve. Eso sí depende de vos.',
+      'Si hay hechos y no película, la decisión es simple aunque duela. Si solo hay película, el trabajo es adentro.',
+    ],
+    accion: 'Escribí qué es un hecho y qué es película. Después, qué depende de vos.',
+    herramienta: 'reparto',
+    fuente: 'Epicteto, Manual, secciones 1 y 5. Es filosofía, no un estudio. Si los celos te llevan a controlar o a explotar, hablalo con un profesional.',
+  },
+  {
+    id: 'corresponde',
+    titulo: 'Si no te sentís correspondido, es porque no te corresponde',
+    bajada: 'Para dejar de leer señales donde no hay.',
+    parrafos: [
+      'El interés se nota. Cuando alguien quiere estar, busca, contesta y hace lugar. Si vos sos el único que propone, el único que escribe y el que siempre entiende, no hay misterio que descifrar: no quiere, o no lo suficiente.',
+      'Y si aparece solo cuando necesita algo, llamalo por su nombre: parece que te usa. No hace falta que sea mala persona. Hace falta que vos dejes de ofrecerte.',
+      'Epicteto pide no querer que las cosas pasen como uno desea, sino quererlas como pasan. No es resignación: es dejar de gastar fuerza en pelear contra lo que ya es, para ponerla en lo que viene.',
+      'Duele, y está bien que duela. Pero quedarte esperando no es amor ni lealtad: es miedo a empezar de nuevo. No vales menos porque una persona no te eligió.',
+    ],
+    accion: 'Dejá de escribirle hoy. Sin anuncio y sin escena. Y hacé una cosa por vos.',
+    herramienta: 'destrabar',
+    fuente: 'Epicteto, Manual, sección 8. Es filosofía, no un estudio. Si el dolor te deja sin salida, abrí "Si estás en el fondo".',
+  },
   {
     id: 'dominio',
     titulo: 'Las ganas no son órdenes',
