@@ -1,0 +1,172 @@
+/*
+ * Sistema visual "Cristal" (elegido por Matias el 22/11/2026).
+ * Azul noche con profundidad por capas, cifras livianas y un solo acento.
+ * El vidrio va solo en la barra de navegación; el texto nunca va sobre transparencia.
+ * Ninguna pantalla escribe un color: todo sale de estos tokens.
+ */
+:root {
+  --fondo: #0b1020;
+  --papel: #151b30;
+  --papel-2: #1d2540;
+  --borde: #27325a;
+  --linea: #232c4c;
+  --tinta: #f1f4fa;
+  --glosa: #a7b1c8;
+  --acento: #8fd0ff;
+  --sobre-acento: #06121c;
+  --aviso: #ffc98a;
+  --luz-1: #1b3a6b;
+  --luz-2: #3a2a6b;
+  /* Un color por especialista. Siempre acompañado por su nombre: nunca es la única señal. */
+  --biomecanico: #ffb38a;
+  --nutricion: #9be7a8;
+  --sueno: #c4b5ff;
+  --neuro: #8fd0ff;
+  --estratega: #ffe08a;
+  --radio-s: 16px;
+  --radio-m: 24px;
+  --radio-l: 32px;
+  --rebote: cubic-bezier(0.34, 1.56, 0.64, 1);
+  color-scheme: dark;
+}
+
+* { box-sizing: border-box; }
+
+html, body {
+  margin: 0;
+  background: var(--fondo);
+  color: var(--tinta);
+  font-family: 'Manrope Variable', system-ui, sans-serif;
+  font-size: 15px;
+  line-height: 1.4;
+  -webkit-font-smoothing: antialiased;
+  -webkit-tap-highlight-color: transparent;
+}
+
+h1, h2, h3, p { margin: 0; }
+button, input, select { font: inherit; color: inherit; }
+button { cursor: pointer; }
+:focus-visible { outline: 2px solid var(--acento); outline-offset: 2px; }
+
+.marco {
+  position: relative;
+  max-width: 480px;
+  min-height: 100dvh;
+  margin: 0 auto;
+  overflow: hidden;
+}
+.marco::before, .marco::after {
+  content: '';
+  position: absolute;
+  border-radius: 50%;
+  pointer-events: none;
+}
+.marco::before { width: 320px; height: 320px; left: -120px; top: -140px; background: var(--luz-1); filter: blur(60px); opacity: 0.7; }
+.marco::after { width: 260px; height: 260px; right: -120px; top: 420px; background: var(--luz-2); filter: blur(70px); opacity: 0.55; }
+
+.pantalla {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  padding: calc(28px + env(safe-area-inset-top)) 20px calc(112px + env(safe-area-inset-bottom));
+}
+
+.cabecera { display: flex; justify-content: space-between; align-items: center; gap: 12px; }
+.cabecera h1 { font-size: 28px; font-weight: 700; letter-spacing: -0.02em; }
+.glosa { color: var(--glosa); font-size: 13px; }
+.rotulo { color: var(--glosa); font-size: 12px; }
+.pastilla { font-size: 12px; font-weight: 600; background: var(--papel-2); border: 1px solid #2e3960; border-radius: 999px; padding: 8px 12px; white-space: nowrap; }
+
+.carta { background: var(--papel); border: 1px solid var(--borde); border-radius: var(--radio-l); padding: 20px; display: flex; flex-direction: column; gap: 16px; }
+.carta.chica { border-radius: var(--radio-m); padding: 14px 18px; }
+.carta h2 { font-size: 17px; font-weight: 700; }
+.interior { background: var(--papel-2); border-radius: 22px; padding: 14px 16px; display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+
+.cifra { font-weight: 300; font-size: 56px; line-height: 1; letter-spacing: -0.03em; }
+.cifra small { font-size: 22px; font-weight: 500; color: var(--glosa); letter-spacing: 0; }
+.cifra.media { font-size: 30px; }
+.cifra.media small { font-size: 13px; }
+.acento { color: var(--acento); }
+.fila { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.columna { display: flex; flex-direction: column; gap: 4px; min-width: 0; }
+
+.accion {
+  min-height: 48px; padding: 0 22px; border: 0; border-radius: 999px;
+  background: var(--acento); color: var(--sobre-acento); font-weight: 700; font-size: 15px;
+  transition: transform 0.25s var(--rebote);
+}
+.accion:active { transform: scale(0.94); }
+.accion.ancha { width: 100%; min-height: 56px; font-size: 16px; }
+.accion:disabled { background: var(--papel-2); color: var(--glosa); cursor: not-allowed; }
+.contorno { min-height: 48px; padding: 0 20px; border-radius: 999px; background: transparent; border: 1px solid #3a4775; font-weight: 600; }
+
+.lista { padding: 6px 16px; gap: 0; border-radius: 28px; }
+.acuerdo {
+  display: flex; align-items: center; gap: 12px; width: 100%; min-height: 56px; padding: 6px 0;
+  background: none; border: 0; border-top: 1px solid var(--linea); text-align: left;
+}
+.acuerdo:first-child { border-top: 0; }
+.acuerdo .hora { width: 44px; font-size: 13px; color: var(--glosa); flex-shrink: 0; }
+.acuerdo .titulo { font-size: 15px; font-weight: 600; }
+.acuerdo.hecho .titulo, .acuerdo.hecho .hora { color: var(--glosa); font-weight: 500; }
+.acuerdo.siguiente .hora { color: var(--acento); font-weight: 700; }
+.marca {
+  width: 28px; height: 28px; border-radius: 50%; border: 2px solid #3a4775; flex-shrink: 0;
+  display: grid; place-items: center; color: var(--sobre-acento);
+  transition: transform 0.3s var(--rebote), background 0.2s;
+}
+.hecho .marca { background: var(--acento); border-color: var(--acento); transform: scale(1.08); }
+.punto { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+
+.anillo circle.avance { transition: stroke-dasharray 0.6s var(--rebote); }
+
+.semana { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 6px; }
+.semana span { height: 10px; border-radius: 999px; background: var(--linea); }
+.semana span.si { background: var(--acento); }
+
+.barra {
+  position: fixed; z-index: 5; left: 50%; transform: translateX(-50%);
+  bottom: calc(16px + env(safe-area-inset-bottom)); width: min(calc(100% - 32px), 448px); height: 64px;
+  display: grid; grid-template-columns: repeat(4, minmax(0, 1fr));
+  background: rgba(29, 37, 64, 0.86); backdrop-filter: blur(24px); -webkit-backdrop-filter: blur(24px);
+  border: 1px solid rgba(255, 255, 255, 0.14); border-radius: 999px;
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.45), inset 0 1px 0 rgba(255, 255, 255, 0.12);
+}
+.barra button { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px; background: none; border: 0; border-radius: 999px; font-size: 11px; color: var(--glosa); }
+.barra button[aria-current='page'] { color: var(--acento); font-weight: 700; }
+
+.campo { display: flex; flex-direction: column; gap: 6px; }
+.campo label, .campo legend { font-size: 13px; color: var(--glosa); padding: 0; }
+.campo input, .campo select {
+  min-height: 52px; padding: 0 16px; width: 100%; background: var(--papel-2);
+  border: 1px solid var(--borde); border-radius: var(--radio-s); font-size: 17px;
+}
+.dos { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+.opciones { display: flex; flex-direction: column; gap: 8px; border: 0; margin: 0; padding: 0; }
+.opcion { display: flex; align-items: center; gap: 12px; min-height: 56px; padding: 10px 16px; background: var(--papel-2); border: 1px solid var(--borde); border-radius: var(--radio-s); }
+.opcion:has(input:checked) { border-color: var(--acento); }
+.opcion input { width: 20px; height: 20px; min-height: 0; accent-color: var(--acento); flex-shrink: 0; }
+.opcion b { display: block; font-size: 15px; }
+.pasos { display: grid; grid-auto-flow: column; grid-auto-columns: 1fr; gap: 6px; }
+.pasos span { height: 4px; border-radius: 999px; background: var(--linea); }
+.pasos span.si { background: var(--acento); }
+.pie { display: flex; gap: 10px; margin-top: 6px; }
+.pie .accion { flex: 1; }
+
+.dictamen ul { margin: 0; padding-left: 18px; display: flex; flex-direction: column; gap: 6px; color: var(--tinta); font-size: 14px; }
+.dictamen .veredicto { font-size: 17px; font-weight: 700; line-height: 1.3; }
+.nota { background: var(--papel-2); border-radius: var(--radio-s); padding: 12px 14px; font-size: 13px; }
+.nota b { display: block; font-size: 12px; color: var(--glosa); font-weight: 600; margin-bottom: 2px; }
+.aviso { color: var(--aviso); font-size: 13px; }
+.grafico { width: 100%; height: auto; display: block; }
+.grafico text { font-family: inherit; font-size: 11px; fill: var(--glosa); }
+
+@media (prefers-reduced-motion: reduce) {
+  * { transition: none !important; animation: none !important; }
+}
+@media (prefers-contrast: more) {
+  :root { --glosa: #d3dae8; --borde: #5a6aa0; --linea: #48578a; }
+  .barra { background: var(--papel-2); backdrop-filter: none; }
+}
