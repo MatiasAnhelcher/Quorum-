@@ -10,7 +10,7 @@ export interface Pieza {
   /** Lo que se hace hoy con esto. */
   accion: string
   /** Herramienta de la app que lo pone en práctica, si hay. */
-  herramienta?: 'fondo' | 'impulso' | 'reparto' | 'si-entonces' | 'destrabar' | 'vispera'
+  herramienta?: 'fondo' | 'escribirle' | 'impulso' | 'reparto' | 'si-entonces' | 'destrabar' | 'vispera'
   fuente: string
 }
 
@@ -18,15 +18,15 @@ export const CODIGO: Pieza[] = [
   {
     id: 'mensaje',
     titulo: 'Tu día no depende de un mensaje',
-    bajada: 'Para dejar de ser simp: de vivir pendiente de si te escribe.',
+    bajada: 'Para dejar de actuar de simp: de vivir pendiente de si te escribe.',
     parrafos: [
       'Si estás bien cuando te habla y mal cuando no, no estás enamorado: estás enganchado. Le diste a otra persona el control remoto de tu día, y ni siquiera te lo pidió.',
       'Mirar el teléfono cada cinco minutos no hace que llegue el mensaje. Lo único que hace es entrenarte para necesitarlo. Cada vez que revisás, el enganche crece.',
       'Epicteto lo separa en dos: lo que ella siente, decide y hace no depende de vos. Lo que vos hacés con tus horas, sí. El que pone su paz en lo que no maneja, dice, termina trabado, quejándose y culpando a todos.',
       'Nadie respeta al que mendiga atención, y vos tampoco te respetás cuando lo hacés. Interés que hay que rogar no es interés. Volvé a tu vida: entreno, trabajo, tus compas. El que está ocupado construyendo no tiene tiempo de esperar un visto.',
     ],
-    accion: 'Hoy no le escribís primero ni revisás si te vio. Esa hora va a un entreno.',
-    herramienta: 'reparto',
+    accion: 'Antes de escribirle, pasá por las tres preguntas. Y la hora de esperar el visto va a un entreno.',
+    herramienta: 'escribirle',
     fuente: 'Epicteto, Manual, sección 1. Es filosofía, no un estudio. El resto es criterio de Quorum, dicho sin vueltas.',
   },
   {

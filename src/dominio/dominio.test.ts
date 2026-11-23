@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest'
 import { cinturaObjetivo, gastoEnReposo, grasaEstimada, pesoDeReferencia, planDeComida } from './cuerpo'
 import { dictamenes } from './directorio'
 import { actaSemanal, acuerdosDelDia, alternar, constanciaSemanal, estaAchicado, hayQuorum, sesionDelDia, type Registro } from './hoy'
-import { BUSCADOR_DE_LINEAS, EJEMPLOS, LINEAS, PASOS_DEL_PLAN, PASOS_DE_VISPERA, pasosDelPlanEscritos, anotarOla, destrabadas, frenteListo, resumenDeDominio, destrabeListo, intencionCompleta, lunesDe, reloj, renglones, repartoCompleto, visperaLista } from './herramientas'
+import { veredicto, BUSCADOR_DE_LINEAS, EJEMPLOS, LINEAS, PASOS_DEL_PLAN, PASOS_DE_VISPERA, pasosDelPlanEscritos, anotarOla, destrabadas, frenteListo, resumenDeDominio, destrabeListo, intencionCompleta, lunesDe, reloj, renglones, repartoCompleto, visperaLista } from './herramientas'
 import { anotarSerie, borrarUltimaSerie, leerRango, rutinaDelDia, segundosDeDescanso, semanaDeEntreno, SESIONES, sugerencia, ultimaVez, type Bitacora } from './rutina'
 import { curva, proyectar } from './proyeccion'
 import { PRINCIPIOS, camino, principioDelDia, semanaFirme } from './camino'
@@ -330,6 +330,12 @@ describe('parte semanal y el código', () => {
     expect(PASOS_DEL_PLAN).toHaveLength(6)
     expect(pasosDelPlanEscritos({})).toBe(0)
     expect(pasosDelPlanEscritos({ senales: 'me aíslo', ayuda: '  ', gente: 'mi hermano' })).toBe(2)
+  })
+  it('antes de escribirle: la ansiedad no escribe, y el interés escribe con propuesta y con el después decidido', () => {
+    expect(veredicto({ propuesta: '', despues: '' })).toBe('falta')
+    expect(veredicto({ motivo: 'ansiedad', propuesta: 'Un café', despues: 'Sigo' })).toBe('no-escribas')
+    expect(veredicto({ motivo: 'quiero', propuesta: 'Un café el jueves', despues: '' })).toBe('falta')
+    expect(veredicto({ motivo: 'quiero', propuesta: 'Un café el jueves', despues: 'Sigo con mi día' })).toBe('escribi')
   })
   it('cada pieza del código tiene texto, acción y fuente', () => {
     expect(new Set(CODIGO.map((c) => c.id)).size).toBe(CODIGO.length)

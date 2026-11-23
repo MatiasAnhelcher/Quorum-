@@ -3,18 +3,19 @@ import { CODIGO, type Pieza } from '../dominio/codigo'
 import { NOMBRE_CORTO } from '../dominio/directorio'
 import { parteSemanal } from '../dominio/parte'
 import type { Bitacora } from '../dominio/rutina'
-import { BUSCADOR_DE_LINEAS, EJEMPLOS, LINEAS, PASOS_DEL_PLAN, PASOS_DE_VISPERA, pasosDelPlanEscritos, type PlanSeguro, anotarOla, destrabadas, frenteListo, resumenDeDominio, type Dominio, type Frente, destrabeListo, intencionCompleta, lunesDe, reloj, renglones, repartoCompleto, visperaLista, type Destrabe, type Destrabes, type Intencion, type Intenciones, type Reparto, type Repartos, type Repasos, type Revision, type Revisiones, type Vispera, type Visperas } from '../dominio/herramientas'
+import { veredicto, type Mensaje, BUSCADOR_DE_LINEAS, EJEMPLOS, LINEAS, PASOS_DEL_PLAN, PASOS_DE_VISPERA, pasosDelPlanEscritos, type PlanSeguro, anotarOla, destrabadas, frenteListo, resumenDeDominio, type Dominio, type Frente, destrabeListo, intencionCompleta, lunesDe, reloj, renglones, repartoCompleto, visperaLista, type Destrabe, type Destrabes, type Intencion, type Intenciones, type Reparto, type Repartos, type Repasos, type Revision, type Revisiones, type Vispera, type Visperas } from '../dominio/herramientas'
 import { actaSemanal, acuerdosDelDia, type IdAcuerdo, type Registro } from '../dominio/hoy'
 import { fechaCorta, sumarDias } from '../dominio/tiempo'
 import type { Perfil } from '../dominio/tipos'
 
-type IdHerramienta = 'fondo' | 'destrabar' | 'impulso' | 'reparto' | 'foco' | 'si-entonces' | 'vispera' | 'revision'
+type IdHerramienta = 'fondo' | 'escribirle' | 'destrabar' | 'impulso' | 'reparto' | 'foco' | 'si-entonces' | 'vispera' | 'revision'
 
 const FONDO = { id: 'fondo' as const, nombre: 'Si estás en el fondo', para: 'Para cuando no ves salida. Ayuda ahora y un plan para los días negros.', especialista: 'sueno', minutos: '' }
 
 const LISTA: { id: IdHerramienta; nombre: string; para: string; especialista: string; minutos: string }[] = [
   { id: 'destrabar', nombre: 'Hecho, no perfecto', para: 'Achicar lo que venís pateando hasta que se pueda terminar hoy.', especialista: 'estratega', minutos: '10 min' },
   { id: 'impulso', nombre: 'Dominar un impulso', para: 'Para lo que querés dejar: pasar las ganas sin obedecerlas.', especialista: 'neuro', minutos: '10 min' },
+  { id: 'escribirle', nombre: 'Antes de escribirle', para: 'Tres preguntas para saber si es interés o ansiedad.', especialista: 'neuro', minutos: '2 min' },
   { id: 'reparto', nombre: 'Lo que depende de mí', para: 'Separar lo que podés cambiar de lo que no, y elegir un paso.', especialista: 'neuro', minutos: '5 min' },
   { id: 'foco', nombre: 'Bloque de foco', para: 'Estudiar o trabajar 25 minutos y fijar lo aprendido.', especialista: 'neuro', minutos: '25 min' },
   { id: 'si-entonces', nombre: 'Planes si-entonces', para: 'Decidir hoy qué vas a hacer cuando aparezca el obstáculo.', especialista: 'estratega', minutos: '5 min' },
@@ -202,6 +203,41 @@ function EnElFondo({ plan, guardar }: { plan: PlanSeguro; guardar: (p: PlanSegur
         <p className="glosa">Tomalo en serio si habla de querer morirse, de no tener salida o de ser una carga, si se aísla, regala sus cosas, se despide, o pasa de golpe de estar muy mal a estar muy tranquilo. No lo dejes solo, escuchalo sin retarlo y ayudalo a llamar a una línea o a llegar a una guardia.</p>
       </section>
       <p className="rotulo">Fuentes: señales de alerta y línea 988, Instituto Nacional de Salud Mental de Estados Unidos (página en español, revisada en agosto de 2024). Líneas de Argentina, según Find A Helpline. El plan sigue los seis pasos de la Intervención de Planificación de Seguridad (Stanley, Brown y otros, JAMA Psychiatry, 2018;75(9):894-900): en guardias de hospitales de veteranos, quienes armaron el plan con un profesional y recibieron seguimiento tuvieron cerca de la mitad de conductas suicidas en seis meses. De ese estudio leí resúmenes, no el artículo completo, y ahí el plan se arma con un profesional: esta pantalla no lo reemplaza. Todavía no fue revisada por un profesional de salud mental; cuando lo esté, lo vamos a decir acá.</p>
+    </>
+  )
+}
+
+function AntesDeEscribirle() {
+  // No se guarda: es una decisión del momento y no hace falta dejar registro de a quién le escribís.
+  const [m, setM] = useState<Mensaje>({ propuesta: '', despues: '' })
+  const v = veredicto(m)
+  return (
+    <>
+      <p className="glosa">Un mensaje no define tu día. Antes de mandarlo, contestate esto con la verdad. Nada de lo que escribas acá se guarda.</p>
+      <section className="carta" aria-label="Tres preguntas">
+        <div className="campo">
+          <span className="glosa" id="esc-motivo">1. ¿Le escribís porque tenés algo para decirle o porque estás ansioso?</span>
+          <div className="tramos dos-tramos" role="group" aria-labelledby="esc-motivo">
+            <button type="button" aria-pressed={m.motivo === 'quiero'} onClick={() => setM({ ...m, motivo: 'quiero' })}>Tengo algo</button>
+            <button type="button" aria-pressed={m.motivo === 'ansiedad'} onClick={() => setM({ ...m, motivo: 'ansiedad' })}>Estoy ansioso</button>
+          </div>
+        </div>
+        {m.motivo === 'quiero' && (
+          <>
+            <div className="campo">
+              <label htmlFor="esc-propuesta">2. ¿Qué le proponés, concreto?</label>
+              <input id="esc-propuesta" value={m.propuesta} placeholder="Un café el jueves a las 19" onChange={(e) => setM({ ...m, propuesta: e.target.value })} />
+            </div>
+            <div className="campo">
+              <label htmlFor="esc-despues">3. Si no responde, ¿qué hacés vos?</label>
+              <input id="esc-despues" value={m.despues} placeholder="Sigo con mi día y no insisto" onChange={(e) => setM({ ...m, despues: e.target.value })} />
+            </div>
+          </>
+        )}
+      </section>
+      {v === 'no-escribas' && <p className="nota"><b>No lo mandes</b>Ese mensaje no es para ella, es para calmarte vos, y la calma que da dura lo que tarda en no llegar la respuesta. Dejá el celular en otro ambiente y andá a entrenar, a caminar o a ver a un compa. Si en dos horas tenés algo real para decir, volvé.</p>}
+      {v === 'escribi' && <p className="nota"><b>Mandalo una vez</b>Claro, corto y sin vueltas: mostrar interés de frente no es de simp, es de hombre seguro. Mandalo, soltá el teléfono y cumplí lo que escribiste en la tercera. Un no, o un silencio, también es una respuesta.</p>}
+      <p className="rotulo">Es criterio de Quorum, no un estudio: separar el interés de la ansiedad, proponer algo concreto y decidir de antemano qué hacés si no hay respuesta. La tercera pregunta es un plan si-entonces (Gollwitzer y Sheeran, 2006).</p>
     </>
   )
 }
@@ -494,6 +530,7 @@ export function Herramientas({ perfil, hoy, datos, abrir, cambiar, votar }: {
   if (actual.id === 'foco') cuerpo = <Foco hoy={hoy} repasos={datos.repasos} votado={hechos.includes('foco')} guardar={(texto) => { const repasos = { ...datos.repasos, [hoy]: texto }; if (hechos.includes('foco')) cambiar({ repasos }); else votar('foco', { repasos }) }} />
   else if (actual.id === 'si-entonces') cuerpo = <SiEntonces perfil={perfil} hoy={hoy} intenciones={datos.intenciones} guardar={(intenciones) => cambiar({ intenciones })} />
   else if (actual.id === 'fondo') cuerpo = <EnElFondo plan={datos.planSeguro} guardar={(planSeguro) => cambiar({ planSeguro })} />
+  else if (actual.id === 'escribirle') cuerpo = <AntesDeEscribirle />
   else if (actual.id === 'destrabar') cuerpo = <Destrabar hoy={hoy} destrabes={datos.destrabes} guardar={(destrabes) => cambiar({ destrabes })} />
   else if (actual.id === 'impulso') cuerpo = <Impulso hoy={hoy} dominio={datos.dominio} guardar={(dominio) => cambiar({ dominio })} />
   else if (actual.id === 'reparto') cuerpo = <LoQueDepende hoy={hoy} repartos={datos.repartos} guardar={(repartos) => cambiar({ repartos })} />
