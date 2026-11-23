@@ -32,8 +32,9 @@
   color-scheme: light dark;
 }
 
+/* Oscuro: lo pide el sistema (salvo que la persona haya elegido claro) o lo elige la persona. Los dos bloques llevan los mismos valores. */
 @media (prefers-color-scheme: dark) {
-  :root {
+  :root:not([data-tema='claro']) {
     --fondo: #0f1218;
     --papel: #181c25;
     --papel-2: #222734;
@@ -53,6 +54,27 @@
     --estratega: #f2cf6b;
   }
 }
+:root[data-tema='oscuro'] {
+  --fondo: #0f1218;
+  --papel: #181c25;
+  --papel-2: #222734;
+  --borde: #2c3342;
+  --linea: #262c3a;
+  --trazo: #4a5367;
+  --tinta: #f2f4f8;
+  --glosa: #a9b1c1;
+  --acento: #f2f4f8;
+  --sobre-acento: #12151c;
+  --senal: #7dbeff;
+  --aviso: #ffc98a;
+  --biomecanico: #ff9b76;
+  --nutricion: #7fd99a;
+  --sueno: #b3a6ff;
+  --neuro: #7dbeff;
+  --estratega: #f2cf6b;
+  color-scheme: dark;
+}
+:root[data-tema='claro'] { color-scheme: light; }
 
 * { box-sizing: border-box; }
 
@@ -141,6 +163,9 @@ h1 { font-family: var(--titulos); font-size: 30px; font-weight: 700; letter-spac
 .mesa text.fuerte { fill: var(--tinta); font-weight: 600; }
 .mesa .silla { transform-box: fill-box; transform-origin: center; transition: transform 0.45s var(--rebote); }
 .mesa .silla.votada { transform: scale(1.06); }
+.mesa .asiento { cursor: pointer; outline: none; }
+.mesa .asiento:focus-visible .foco { stroke: var(--senal); }
+.mesa .asiento:active .silla { transform: scale(0.92); }
 /* En celulares bajos la mesa se achica para que la acción principal quede a la vista. */
 @media (max-height: 700px) { .mesa { width: min(100%, 270px); } }
 .estado { text-align: center; font-size: 14px; color: var(--glosa); }
@@ -187,6 +212,12 @@ h1 { font-family: var(--titulos); font-size: 30px; font-weight: 700; letter-spac
 .nota { background: var(--papel-2); border-radius: var(--radio-s); padding: 12px 14px; font-size: 13px; }
 .nota b { display: block; font-size: 12px; color: var(--glosa); font-weight: 600; margin-bottom: 2px; }
 .aviso { color: var(--aviso); font-size: 13px; }
+.propuesta { background: var(--papel-2); border-radius: 22px; padding: 14px 16px; display: flex; flex-direction: column; gap: 10px; }
+.propuesta b { font-family: var(--titulos); font-size: 17px; }
+.tramos { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 4px; padding: 4px; background: var(--papel-2); border-radius: 999px; }
+.tramos button { min-height: 44px; border: 0; border-radius: 999px; background: none; font-size: 14px; font-weight: 600; color: var(--glosa); }
+.tramos button[aria-pressed='true'] { background: var(--papel); color: var(--tinta); box-shadow: 0 0 0 1px var(--borde); }
+.oculto { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); }
 .grafico { width: 100%; height: auto; display: block; }
 .grafico text { font-family: inherit; font-size: 11px; fill: var(--glosa); }
 
@@ -197,5 +228,5 @@ h1 { font-family: var(--titulos); font-size: 30px; font-weight: 700; letter-spac
   :root { --glosa: #3a4050; --borde: #6b7386; --linea: #9aa1b0; --trazo: #3a4050; }
 }
 @media (prefers-contrast: more) and (prefers-color-scheme: dark) {
-  :root { --glosa: #d3d9e4; --borde: #8b94a8; --linea: #6b7386; --trazo: #d3d9e4; }
+  :root:not([data-tema='claro']) { --glosa: #d3d9e4; --borde: #8b94a8; --linea: #6b7386; --trazo: #d3d9e4; }
 }

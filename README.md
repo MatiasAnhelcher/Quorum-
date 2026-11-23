@@ -10,7 +10,7 @@ Quorum es un sistema operativo de alto rendimiento personal. No es una app de h�
 | Hoy | La mesa del Directorio: cinco sillas, una por especialista, que se encienden al cumplir cada acuerdo. Hay **quórum** con 3 de 5: un día imperfecto igual cuenta. |
 | Directorio | El dictamen de cada especialista, con su plan B para días caóticos y su fuente. |
 | Proyección | Rango de peso esperado a 3, 6 y 12 meses, con tus pesadas reales dibujadas encima. |
-| Seguimiento | Peso (manda el promedio de 7 días), cintura, y todo lo que Quorum sabe de vos para corregirlo o borrarlo. |
+| Seguimiento | Peso (manda el promedio de 7 días), cintura, el ajuste del plan cuando el ritmo se sale de lo esperado, tema claro u oscuro, copia de seguridad, y todo lo que Quorum sabe de vos para corregirlo o borrarlo. |
 
 ## Reglas de producto
 
@@ -18,13 +18,16 @@ Quorum es un sistema operativo de alto rendimiento personal. No es una app de h�
 - No hay rachas que castigan. La constancia se ve y un día flojo no borra nada.
 - Ninguna conclusión sin datos suficientes: el ritmo de peso recién se lee con 3 pesadas por semana durante dos semanas.
 - Cada afirmación de salud lleva su fuente. La grasa corporal con cinta se presenta siempre como estimación.
+- El plan se corrige solo, de a 100 kcal y con 14 días entre ajustes. La app propone y la persona aplica.
+- Funciona sin conexión después de la primera visita (service worker generado al compilar).
+- El contraste de todos los colores se mide en los tests, en claro y en oscuro.
 - Quorum no reemplaza a un profesional.
 
 ## Cómo está armado
 
 - React 19, Vite 8 y TypeScript. Sin router ni librería de estado: son cinco pantallas.
 - `src/dominio/` tiene todas las reglas como funciones puras con tests (Vitest). Las pantallas solo las usan.
-- `src/estilos.css` tiene el sistema visual **Mesa** como tokens, claro por defecto y oscuro según el sistema. Ninguna pantalla escribe un color.
+- `src/estilos.css` tiene el sistema visual **Mesa** como tokens, claro por defecto, oscuro según el sistema o elegido a mano. Ninguna pantalla escribe un color.
 - `src/datos/almacen.ts` guarda y carga el estado, con versión.
 
 ## Comandos

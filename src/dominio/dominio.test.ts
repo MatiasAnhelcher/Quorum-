@@ -3,7 +3,8 @@ import { cinturaObjetivo, gastoEnReposo, grasaEstimada, pesoDeReferencia, planDe
 import { dictamenes } from './directorio'
 import { acuerdosDelDia, alternar, constanciaSemanal, hayQuorum, sesionDelDia, type Registro } from './hoy'
 import { curva, proyectar } from './proyeccion'
-import { leerRitmo, registrar, tendencia } from './seguimiento'
+import { leerCopia } from '../datos/almacen'
+import { ajustePropuesto, leerRitmo, registrar, tendencia } from './seguimiento'
 import { fechaLarga, fechaLocal, horasDeSueno, sumarDias, sumarMinutos } from './tiempo'
 import type { Perfil } from './tipos'
 
@@ -153,5 +154,48 @@ describe('tiempo', () => {
     expect(sumarMinutos('00:30', -60)).toBe('23:30')
     expect(horasDeSueno('21:30', '05:15')).toBeCloseTo(7.75, 2)
     expect(horasDeSueno('00:30', '08:00')).toBeCloseTo(7.5, 2)
+  })
+})
+
+describe('el plan se corrige solo', () => {
+  it('no propone nada sin dato o en ritmo', () => {
+    expect(ajustePropuesto('falta-dato', false, 0, undefined, '2026-12-07')).toBeNull()
+    expect(ajustePropuesto('en-ritmo', false, 0, undefined, '2026-12-07')).toBeNull()
+  })
+  it('bajando: lento resta comida y rápido suma', () => {
+    expect(ajustePropuesto('muy-lento', false, 0, undefined, '2026-12-07')).toBe(-100)
+    expect(ajustePropuesto('muy-rapido', false, 0, undefined, '2026-12-07')).toBe(100)
+  })
+  it('subiendo es al revés', () => {
+    expect(ajustePropuesto('muy-lento', true, 0, undefined, '2026-12-07')).toBe(100)
+    expect(ajustePropuesto('muy-rapido', true, 0, undefined, '2026-12-07')).toBe(-100)
+  })
+  it('espera 14 días entre ajustes y respeta el tope', () => {
+    expect(ajustePropuesto('muy-lento', false, -100, '2026-12-01', '2026-12-07')).toBeNull()
+    expect(ajustePropuesto('muy-lento', false, -100, '2026-12-01', '2026-12-15')).toBe(-200)
+    expect(ajustePropuesto('muy-lento', false, -300, undefined, '2026-12-07')).toBeNull()
+    expect(ajustePropuesto('muy-rapido', false, -300, undefined, '2026-12-07')).toBe(-200)
+  })
+  it('el ajuste cambia calorías y carbohidratos, nunca la proteína ni el piso', () => {
+    const base = planDeComida(matias)
+    const ajustado = planDeComida({ ...matias, ajusteKcal: -100 })
+    expect(ajustado.kcal).toBe(base.kcal - 100)
+    expect(ajustado.proteinaG).toBe(base.proteinaG)
+    expect(ajustado.carbosG).toBe(base.carbosG - 25)
+    expect(planDeComida({ ...matias, ajusteKcal: -5000 }).kcal).toBeGreaterThanOrEqual(Math.floor(gastoEnReposo(matias) / 50) * 50)
+  })
+})
+
+describe('copia de seguridad', () => {
+  const estado = { version: 1 as const, perfil: matias, registro: { '2026-11-23': ['entreno' as const] }, pesos: [{ fecha: '2026-11-23', valor: 78.6 }], cinturas: [] }
+  it('lee de vuelta lo que se descargó', () => {
+    expect(leerCopia(JSON.stringify(estado))).toEqual(estado)
+  })
+  it('rechaza archivos que no son una copia de Quorum', () => {
+    expect(leerCopia('hola')).toBeNull()
+    expect(leerCopia('null')).toBeNull()
+    expect(leerCopia(JSON.stringify({ ...estado, version: 2 }))).toBeNull()
+    expect(leerCopia(JSON.stringify({ ...estado, perfil: null }))).toBeNull()
+    expect(leerCopia(JSON.stringify({ ...estado, pesos: [{ fecha: 1 }] }))).toBeNull()
   })
 })

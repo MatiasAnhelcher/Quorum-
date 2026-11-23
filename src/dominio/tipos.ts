@@ -23,6 +23,10 @@ export interface Perfil {
   presupuesto: Presupuesto
   /** Fecha local AAAA-MM-DD en que se hizo el diagnóstico. */
   inicio: string
+  /** Corrección de calorías que salió del seguimiento del peso. Se reinicia al rehacer el diagnóstico. */
+  ajusteKcal?: number
+  /** Fecha local del último ajuste, para no corregir dos veces sobre la misma tendencia. */
+  ajusteFecha?: string
 }
 
 export interface Medicion {

@@ -23,7 +23,13 @@ export function Hoy({ perfil, hoy, registro, cambiar }: { perfil: Perfil; hoy: s
         <span className="pastilla">Día {Math.max(1, diasEntre(perfil.inicio, hoy) + 1)}</span>
       </header>
 
-      <Mesa sillas={acuerdos.map((a) => ({ id: a.especialista, nombre: NOMBRE_CORTO[a.especialista], votada: hechos.includes(a.id), sigue: a.id === siguiente?.id }))} />
+      <Mesa
+        sillas={acuerdos.map((a) => ({ id: a.especialista, nombre: NOMBRE_CORTO[a.especialista], votada: hechos.includes(a.id), sigue: a.id === siguiente?.id }))}
+        votar={(especialista) => {
+          const acuerdo = acuerdos.find((a) => a.especialista === especialista)
+          if (acuerdo) cambiar(alternar(registro, hoy, acuerdo.id))
+        }}
+      />
 
       <p className="estado" role="status">
         {completo ? 'Día completo. El Directorio no pide más.'
