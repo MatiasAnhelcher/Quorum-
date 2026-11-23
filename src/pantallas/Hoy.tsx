@@ -1,11 +1,13 @@
-import { Mesa, Tilde } from '../componentes'
+import { Mesa, Tilde, type Seccion } from '../componentes'
 import { NOMBRE_CORTO } from '../dominio/directorio'
+import { camino, principioDelDia } from '../dominio/camino'
+import { frenteListo, intencionCompleta, resumenDeDominio, type Dominio, type Intenciones } from '../dominio/herramientas'
 import { actaSemanal, acuerdosDelDia, alternar, constanciaSemanal, cumplidos, MAYORIA, type Registro } from '../dominio/hoy'
 import { rutinaDelDia } from '../dominio/rutina'
-import { diasEntre, fechaLarga } from '../dominio/tiempo'
+import { fechaLarga } from '../dominio/tiempo'
 import type { Perfil } from '../dominio/tipos'
 
-export function Hoy({ perfil, hoy, registro, cambiar }: { perfil: Perfil; hoy: string; registro: Registro; cambiar: (r: Registro) => void }) {
+export function Hoy({ perfil, hoy, registro, intenciones, dominio, cambiar, ir }: { perfil: Perfil; hoy: string; registro: Registro; intenciones: Intenciones; dominio?: Dominio; cambiar: (r: Registro) => void; ir: (s: Seccion) => void }) {
   const acuerdos = acuerdosDelDia(perfil, hoy, registro)
   const rutina = rutinaDelDia(perfil, hoy)
   const acta = actaSemanal(registro, hoy)
@@ -15,16 +17,39 @@ export function Hoy({ perfil, hoy, registro, cambiar }: { perfil: Perfil; hoy: s
   const semana = constanciaSemanal(registro, hoy)
   const diasConQuorum = semana.filter(Boolean).length
   const completo = hechos.length === acuerdos.length
+  const paso = camino(perfil, registro, hoy)
+  const principio = principioDelDia(perfil.inicio, hoy)
+  const frente = dominio && frenteListo(dominio.frente) ? { nombre: dominio.frente.nombre, ...resumenDeDominio(dominio, hoy) } : null
+  const plan = siguiente ? intenciones[siguiente.id] : undefined
 
   return (
     <main className="pantalla">
       <header className="cabecera">
         <div className="columna" style={{ gap: 2 }}>
-          <span className="glosa">{fechaLarga(hoy)}</span>
+          <span className="glosa">{fechaLarga(hoy)} · Día {paso.dia} en el camino</span>
           <h1>{faltan > 0 ? 'Tu Directorio sesiona' : `Hay quórum, ${perfil.nombre}`}</h1>
         </div>
-        <span className="pastilla">Día {Math.max(1, diasEntre(perfil.inicio, hoy) + 1)}</span>
+        <span className="pastilla">{paso.rango}</span>
       </header>
+
+      <section className="camino" aria-label="Tu camino">
+        <div className="tramo">
+          <span className="cifra media">{paso.racha}</span>
+          <span className="rotulo">{paso.racha === 1 ? 'semana firme seguida' : 'semanas firmes seguidas'}</span>
+        </div>
+        <div className="tramo">
+          <span className="cifra media">{paso.entrenos}</span>
+          <span className="rotulo">{paso.entrenos === 1 ? 'entreno hecho' : 'entrenos hechos'}</span>
+        </div>
+        <div className="tramo">
+          <span className="cifra media">{paso.quorums}</span>
+          <span className="rotulo">{paso.quorums === 1 ? 'día con quórum' : 'días con quórum'}</span>
+        </div>
+        <span className="rotulo pie-camino">
+          {paso.proximo ? `${paso.proximo.faltan === 1 ? 'Falta 1 semana firme' : `Faltan ${paso.proximo.faltan} semanas firmes`} para ${paso.proximo.nombre}.` : 'Llegaste a la última etapa. Ahora se sostiene.'}
+          {paso.mejorRacha > paso.racha ? ` Tu mejor marca: ${paso.mejorRacha} seguidas.` : ''}
+        </span>
+      </section>
 
       <Mesa
         sillas={acuerdos.map((a) => ({ id: a.especialista, nombre: NOMBRE_CORTO[a.especialista], votada: hechos.includes(a.id), sigue: a.id === siguiente?.id }))}
@@ -45,7 +70,7 @@ export function Hoy({ perfil, hoy, registro, cambiar }: { perfil: Perfil; hoy: s
           <div className="columna" style={{ gap: 3 }}>
             <span className="rotulo">Sigue · {siguiente.hora} · {NOMBRE_CORTO[siguiente.especialista]}</span>
             <span className="titulo">{siguiente.titulo}</span>
-            <span className="rotulo">{siguiente.detalle}</span>
+            <span className="rotulo">{intencionCompleta(plan) ? `Tu plan: si ${plan.si}, ${plan.entonces}.` : siguiente.detalle}</span>
           </div>
           <button type="button" className="accion" onClick={() => cambiar(alternar(registro, hoy, siguiente.id))}>Hecho</button>
         </section>
@@ -70,27 +95,31 @@ export function Hoy({ perfil, hoy, registro, cambiar }: { perfil: Perfil; hoy: s
         })}
       </section>
 
-      {rutina && (
-        <details className="carta chica rutina">
-          <summary>
-            <span className="columna" style={{ gap: 2 }}>
-              <span className="glosa">Rutina de hoy</span>
-              <b>{rutina.sesion} · {rutina.ejercicios.length} ejercicios</b>
-            </span>
-            <span className="rotulo ver" aria-hidden="true" />
-          </summary>
-          <ol>
-            {rutina.ejercicios.map((ej) => (
-              <li key={ej.nombre}>
-                <span>{ej.nombre}</span>
-                <span className="rotulo">{ej.series} · descanso {ej.descanso}</span>
-              </li>
-            ))}
-          </ol>
-          <p className="nota"><b>Día sin tiempo</b>{rutina.minima.map((ej) => ej.nombre).join(' y ')}, tres series cada uno. Veinte minutos.</p>
-          <span className="rotulo">Cada serie termina con 1 o 2 repeticiones en reserva. Cuando llegás al tope del rango en todas las series, la próxima vez subís el peso.</span>
-        </details>
+      <blockquote className="principio" aria-label="Principio del día">
+        <p>{principio.texto}</p>
+        <span className="rotulo">Idea de Epicteto, Manual, sección {principio.seccion}. Dicha con palabras de Quorum.</span>
+      </blockquote>
+
+      {frente && (
+        <button type="button" className="carta chica atajo" onClick={() => ir('herramientas')}>
+          <span className="glosa">Tu frente</span>
+          <b>{frente.nombre}</b>
+          <span className="rotulo">{frente.superadas} {frente.superadas === 1 ? 'vez que no cediste' : 'veces que no cediste'} · {frente.diasFirmes} {frente.diasFirmes === 1 ? 'día firme' : 'días firmes'} de {frente.dias}</span>
+        </button>
       )}
+
+      <div className="atajos">
+        <button type="button" className="carta chica atajo" onClick={() => ir('entreno')}>
+          <span className="glosa">Rutina de hoy</span>
+          <b>{rutina ? `${rutina.sesion} · ${rutina.ejercicios.length} ejercicios` : 'Descanso y caminata'}</b>
+          <span className="rotulo">Técnica, series y qué peso usar</span>
+        </button>
+        <button type="button" className="carta chica atajo" onClick={() => ir('herramientas')}>
+          <span className="glosa">Herramientas</span>
+          <b>Destrabar, foco y planes</b>
+          <span className="rotulo">Para la mente y los hábitos</span>
+        </button>
+      </div>
 
       <section className="carta chica" aria-label="Constancia de la semana">
         <div className="fila">
@@ -107,7 +136,7 @@ export function Hoy({ perfil, hoy, registro, cambiar }: { perfil: Perfil; hoy: s
             </li>
           ))}
         </ul>
-        <span className="rotulo">Un día sin quórum no borra nada: mañana se vuelve a votar. Si un acuerdo falla tres días seguidos, se achica.</span>
+        <span className="rotulo">Una semana es firme con tus entrenos hechos (se perdona uno) o con quórum 5 días. Un mal día no rompe nada, y si un acuerdo falla tres días seguidos, se achica.</span>
       </section>
     </main>
   )
