@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest'
 import { cinturaObjetivo, gastoEnReposo, grasaEstimada, pesoDeReferencia, planDeComida } from './cuerpo'
 import { dictamenes } from './directorio'
 import { actaSemanal, acuerdosDelDia, alternar, constanciaSemanal, estaAchicado, hayQuorum, sesionDelDia, type Registro } from './hoy'
-import { EJEMPLOS, faseDeRespiracion, intencionCompleta, lunesDe, reloj } from './herramientas'
+import { EJEMPLOS, intencionCompleta, lunesDe, reloj } from './herramientas'
 import { anotarSerie, borrarUltimaSerie, leerRango, rutinaDelDia, segundosDeDescanso, semanaDeEntreno, SESIONES, sugerencia, ultimaVez, type Bitacora } from './rutina'
 import { curva, proyectar } from './proyeccion'
 import { leerCopia } from '../datos/almacen'
@@ -312,11 +312,6 @@ describe('herramientas', () => {
     expect(reloj(1500)).toBe('25:00')
     expect(reloj(59.2)).toBe('01:00')
     expect(reloj(-3)).toBe('00:00')
-  })
-  it('la respiración alterna 4 segundos de entrada y 6 de salida', () => {
-    expect(faseDeRespiracion(0)).toEqual({ fase: 'entra', resta: 4, ciclo: 1 })
-    expect(faseDeRespiracion(4)).toEqual({ fase: 'sale', resta: 6, ciclo: 1 })
-    expect(faseDeRespiracion(13)).toEqual({ fase: 'entra', resta: 1, ciclo: 2 })
   })
   it('la copia de seguridad conserva la bitácora y las herramientas, y acepta copias viejas', () => {
     const base = { version: 1 as const, perfil: matias, registro: {}, pesos: [], cinturas: [] }

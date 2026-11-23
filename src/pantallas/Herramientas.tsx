@@ -1,17 +1,15 @@
 import { useEffect, useState, type ReactNode } from 'react'
 import { NOMBRE_CORTO } from '../dominio/directorio'
-import { EJEMPLOS, faseDeRespiracion, intencionCompleta, lunesDe, reloj, RESPIRACION, type Intencion, type Intenciones, type Repasos, type Revision, type Revisiones } from '../dominio/herramientas'
+import { EJEMPLOS, intencionCompleta, lunesDe, reloj, type Intencion, type Intenciones, type Repasos, type Revision, type Revisiones } from '../dominio/herramientas'
 import { actaSemanal, acuerdosDelDia, type IdAcuerdo, type Registro } from '../dominio/hoy'
 import { fechaCorta, sumarDias } from '../dominio/tiempo'
 import type { Perfil } from '../dominio/tipos'
 
-type IdHerramienta = 'foco' | 'si-entonces' | 'cierre' | 'revision' | 'respiracion'
+type IdHerramienta = 'foco' | 'si-entonces' | 'revision'
 
 const LISTA: { id: IdHerramienta; nombre: string; para: string; especialista: string; minutos: string }[] = [
   { id: 'foco', nombre: 'Bloque de foco', para: 'Estudiar o trabajar 25 minutos y fijar lo aprendido.', especialista: 'neuro', minutos: '25 min' },
   { id: 'si-entonces', nombre: 'Planes si-entonces', para: 'Decidir hoy qué vas a hacer cuando aparezca el obstáculo.', especialista: 'estratega', minutos: '5 min' },
-  { id: 'cierre', nombre: 'Cierre del día', para: 'Dejar mañana resuelto en dos minutos.', especialista: 'estratega', minutos: '2 min' },
-  { id: 'respiracion', nombre: 'Respiración lenta', para: 'Bajar revoluciones antes de dormir o después de un mal rato.', especialista: 'sueno', minutos: '5 min' },
   { id: 'revision', nombre: 'Revisión de la semana', para: 'Mirar qué funcionó y elegir un solo cambio.', especialista: 'estratega', minutos: '5 min' },
 ]
 
@@ -109,54 +107,6 @@ function SiEntonces({ perfil, hoy, intenciones, guardar }: { perfil: Perfil; hoy
   )
 }
 
-const PASOS_DE_CIERRE = ['Ropa de mañana lista', 'Comida de mañana resuelta', 'Primera tarea de mañana elegida']
-
-function Cierre({ votado, votar }: { votado: boolean; votar: () => void }) {
-  const [hechos, setHechos] = useState<boolean[]>(PASOS_DE_CIERRE.map(() => false))
-  const todos = hechos.every(Boolean)
-  return (
-    <>
-      <p className="glosa">Mañana a la mañana tu cabeza va a tener menos fuerza de voluntad que ahora. Dejale el camino armado.</p>
-      <fieldset className="opciones">
-        <legend className="oculto">Pasos del cierre</legend>
-        {PASOS_DE_CIERRE.map((paso, i) => (
-          <label key={paso} className="opcion">
-            <input type="checkbox" checked={hechos[i]} onChange={(e) => setHechos(hechos.map((h, j) => (j === i ? e.target.checked : h)))} />
-            <b>{paso}</b>
-          </label>
-        ))}
-      </fieldset>
-      {votado
-        ? <p className="estado" role="status">Estrategia votada en la mesa de hoy.</p>
-        : <button type="button" className="accion ancha" disabled={!todos} onClick={votar}>Listo: votar Estrategia</button>}
-    </>
-  )
-}
-
-const MINUTOS_DE_RESPIRACION = 5
-
-function Respiracion() {
-  const [activa, setActiva] = useState(false)
-  const pasados = useCronometro(activa)
-  const total = MINUTOS_DE_RESPIRACION * 60
-  useEffect(() => {
-    if (activa && pasados >= total) setActiva(false)
-  }, [activa, pasados, total])
-  const { fase, resta } = faseDeRespiracion(pasados)
-  return (
-    <>
-      <section className="carta" aria-label="Guía de respiración" style={{ alignItems: 'center' }}>
-        <div className={`aire${activa ? ` ${fase}` : ''}`} aria-hidden="true" />
-        <p className="cifra media" role="status">{activa ? (fase === 'entra' ? 'Entra el aire' : 'Sale el aire') : 'Por la nariz, sin forzar'}</p>
-        <p className="glosa">{activa ? `${Math.ceil(resta)} · quedan ${reloj(total - pasados)}` : `${RESPIRACION.entra} segundos de entrada y ${RESPIRACION.sale} de salida, durante ${MINUTOS_DE_RESPIRACION} minutos.`}</p>
-        <button type="button" className={activa ? 'contorno' : 'accion ancha'} onClick={() => setActiva(!activa)}>{activa ? 'Cortar' : 'Empezar'}</button>
-      </section>
-      <p className="rotulo">Fuente: Zaccaro y otros, Frontiers in Human Neuroscience, 2018. Revisión de 15 estudios: respirar a menos de 10 veces por minuto se asoció con más variabilidad del pulso y más sensación de calma. La evidencia es limitada, en personas sanas, y no midió el sueño de forma directa.</p>
-      <p className="rotulo">Si te mareás, cortá y respirá normal. No reemplaza un tratamiento.</p>
-    </>
-  )
-}
-
 const VACIA: Revision = { bien: '', trabo: '', cambio: '' }
 
 function RevisionSemanal({ perfil, hoy, registro, revisiones, guardar }: { perfil: Perfil; hoy: string; registro: Registro; revisiones: Revisiones; guardar: (r: Revisiones) => void }) {
@@ -237,7 +187,7 @@ export function Herramientas({ perfil, hoy, datos, cambiar, votar }: {
             <span className="glosa">{h.para}</span>
           </button>
         ))}
-        <p className="rotulo">Vienen más. Cada herramienta nueva entra con su fuente leída.</p>
+        <p className="rotulo">Pocas y buenas: una herramienta entra solo si tiene respaldo o se usa todas las semanas.</p>
       </main>
     )
   }
@@ -245,8 +195,6 @@ export function Herramientas({ perfil, hoy, datos, cambiar, votar }: {
   let cuerpo: ReactNode
   if (actual.id === 'foco') cuerpo = <Foco hoy={hoy} repasos={datos.repasos} votado={hechos.includes('foco')} guardar={(texto) => { const repasos = { ...datos.repasos, [hoy]: texto }; if (hechos.includes('foco')) cambiar({ repasos }); else votar('foco', { repasos }) }} />
   else if (actual.id === 'si-entonces') cuerpo = <SiEntonces perfil={perfil} hoy={hoy} intenciones={datos.intenciones} guardar={(intenciones) => cambiar({ intenciones })} />
-  else if (actual.id === 'cierre') cuerpo = <Cierre votado={hechos.includes('plan')} votar={() => votar('plan')} />
-  else if (actual.id === 'respiracion') cuerpo = <Respiracion />
   else cuerpo = <RevisionSemanal perfil={perfil} hoy={hoy} registro={datos.registro} revisiones={datos.revisiones} guardar={(revisiones) => cambiar({ revisiones })} />
 
   return (

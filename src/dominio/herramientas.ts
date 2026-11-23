@@ -48,14 +48,3 @@ export function reloj(segundos: number): string {
   const s = Math.max(0, Math.ceil(segundos))
   return `${String(Math.floor(s / 60)).padStart(2, '0')}:${String(s % 60).padStart(2, '0')}`
 }
-
-/** Respiración lenta: 4 segundos de entrada y 6 de salida son 6 respiraciones por minuto. */
-export const RESPIRACION = { entra: 4, sale: 6 } as const
-
-/** En qué fase está la respiración a los t segundos de empezar. */
-export function faseDeRespiracion(t: number): { fase: 'entra' | 'sale'; resta: number; ciclo: number } {
-  const largo = RESPIRACION.entra + RESPIRACION.sale
-  const enCiclo = t % largo
-  const ciclo = Math.floor(t / largo) + 1
-  return enCiclo < RESPIRACION.entra ? { fase: 'entra', resta: RESPIRACION.entra - enCiclo, ciclo } : { fase: 'sale', resta: largo - enCiclo, ciclo }
-}

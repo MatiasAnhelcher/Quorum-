@@ -80,7 +80,7 @@ export function Hoy({ perfil, hoy, registro, intenciones, cambiar, ir }: { perfi
         </button>
         <button type="button" className="carta chica atajo" onClick={() => ir('herramientas')}>
           <span className="glosa">Herramientas</span>
-          <b>Foco, planes y cierre</b>
+          <b>Foco, planes y revisión</b>
           <span className="rotulo">Para la mente y los hábitos</span>
         </button>
       </div>

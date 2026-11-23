@@ -9,7 +9,7 @@ Quorum es un sistema operativo de alto rendimiento personal. No es una app de h�
 | Diagnóstico | Alta guiada en cuatro pasos: vos, tus medidas, tu semana real, tu objetivo y presupuesto. |
 | Hoy | La mesa del Directorio: cinco sillas que se tocan, una por especialista, que se encienden al cumplir cada acuerdo. Trae la rutina del día con ejercicios, el acta de la semana, y achica el acuerdo que falla tres días seguidos. Hay **quórum** con 3 de 5: un día imperfecto igual cuenta. |
 | Entreno | La semana completa y la rutina guiada de cada día: técnica y error común de cada ejercicio, registro de series, qué peso usar hoy según la última vez (doble progresión) y cronómetro de descanso. |
-| Herramientas | Bloque de foco con repaso de memoria, planes si-entonces, cierre del día, respiración lenta y revisión de la semana. Cada una con su fuente. |
+| Herramientas | Bloque de foco con repaso de memoria, planes si-entonces y revisión de la semana. Pocas y con respaldo. |
 | Directorio | El dictamen de cada especialista, con su plan B para días caóticos y su fuente. |
 | Progreso · Proyección | Rango de peso esperado a 3, 6 y 12 meses, con tus pesadas reales dibujadas encima. |
 | Progreso · Seguimiento | Peso (manda el promedio de 7 días), cintura, el ajuste del plan cuando el ritmo se sale de lo esperado, tema claro u oscuro, copia de seguridad, y todo lo que Quorum sabe de vos para corregirlo o borrarlo. |
