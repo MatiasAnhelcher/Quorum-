@@ -1,17 +1,26 @@
 import { useState, type FormEvent } from 'react'
 import { kg } from '../componentes'
-import type { Estado } from '../datos/almacen'
+import { aplicarTema, cargarTema, leerCopia, type Estado, type Tema } from '../datos/almacen'
+import { planDeComida } from '../dominio/cuerpo'
 import { ritmoSemanal } from '../dominio/proyeccion'
-import { leerRitmo, PESADAS_MINIMAS, registrar, tendencia, type Lectura } from '../dominio/seguimiento'
+import { ajustePropuesto, DIAS_ENTRE_AJUSTES, leerRitmo, PESADAS_MINIMAS, registrar, tendencia, type Lectura } from '../dominio/seguimiento'
 import { fechaCorta } from '../dominio/tiempo'
 import type { Perfil } from '../dominio/tipos'
 
 const LECTURAS: Record<Lectura, string> = {
   'falta-dato': `Todavía no hay conclusión. Hacen falta ${PESADAS_MINIMAS} pesadas esta semana y ${PESADAS_MINIMAS} la anterior.`,
   'en-ritmo': 'Vas en el ritmo esperado. No se toca nada.',
-  'muy-rapido': 'Vas más rápido de lo esperado. Si se repite la semana que viene, conviene sumar comida para cuidar el músculo.',
-  'muy-lento': 'Vas más lento de lo esperado. Antes de cambiar el plan, revisá una semana más: el agua y la sal mueven la balanza.',
+  'muy-rapido': 'Vas más rápido de lo esperado, con dos semanas de pesadas.',
+  'muy-lento': 'Vas más lento de lo esperado, con dos semanas de pesadas.',
 }
+
+const TEMAS: { id: Tema; nombre: string }[] = [
+  { id: 'sistema', nombre: 'Automático' },
+  { id: 'claro', nombre: 'Claro' },
+  { id: 'oscuro', nombre: 'Oscuro' },
+]
+
+const miles = (n: number) => n.toLocaleString('es-AR')
 
 const valido = (texto: string, min: number, max: number) => {
   const n = Number(texto.replace(',', '.'))
@@ -25,6 +34,30 @@ export function Seguimiento({ estado, perfil, hoy, cambiar, editar, borrar }: { 
   const t = tendencia(estado.pesos, hoy)
   const lectura = leerRitmo(t.ritmoKgPorSemana, ritmoSemanal(perfil.objetivo, perfil.pesoKg))
   const ultimaCintura = estado.cinturas.at(-1)
+  const [tema, setTema] = useState<Tema>(cargarTema)
+  const [copia, setCopia] = useState<Estado | null>(null)
+  const [avisoCopia, setAvisoCopia] = useState('')
+
+  // El plan se corrige solo: la propuesta sale de las reglas y la persona decide si la aplica.
+  const plan = planDeComida(perfil)
+  const ajuste = ajustePropuesto(lectura, perfil.objetivo === 'ganar-musculo', perfil.ajusteKcal ?? 0, perfil.ajusteFecha, hoy)
+  const planNuevo = ajuste === null ? null : planDeComida({ ...perfil, ajusteKcal: ajuste })
+  const hayPropuesta = planNuevo !== null && planNuevo.kcal !== plan.kcal
+
+  const descargar = () => {
+    const enlace = document.createElement('a')
+    enlace.href = URL.createObjectURL(new Blob([JSON.stringify(estado, null, 2)], { type: 'application/json' }))
+    enlace.download = `quorum-copia-${hoy}.json`
+    enlace.click()
+    URL.revokeObjectURL(enlace.href)
+    setAvisoCopia('Copia descargada. Guardala fuera de este teléfono.')
+  }
+  const elegirCopia = async (archivo: File | undefined) => {
+    if (!archivo) return
+    const leida = leerCopia(await archivo.text())
+    setCopia(leida)
+    setAvisoCopia(leida ? '' : 'Ese archivo no es una copia de Quorum. No se cambió nada.')
+  }
 
   const cargarPeso = (e: FormEvent) => {
     e.preventDefault()
@@ -62,6 +95,20 @@ export function Seguimiento({ estado, perfil, hoy, cambiar, editar, borrar }: { 
           )}
         </div>
         <p className="glosa" role="status">{LECTURAS[lectura]}</p>
+        {hayPropuesta && planNuevo && ajuste !== null && (
+          <div className="propuesta">
+            <span className="rotulo">El Directorio propone un ajuste</span>
+            <b>De {miles(plan.kcal)} a {miles(planNuevo.kcal)} kcal por día</b>
+            <span className="glosa">La proteína queda en {plan.proteinaG} g. Cambian los carbohidratos: de {plan.carbosG} a {planNuevo.carbosG} g. Se vuelve a evaluar en {DIAS_ENTRE_AJUSTES} días.</span>
+            <button type="button" className="accion" onClick={() => cambiar({ ...estado, perfil: { ...perfil, ajusteKcal: ajuste, ajusteFecha: hoy } })}>Aplicar el ajuste</button>
+          </div>
+        )}
+        {!hayPropuesta && (lectura === 'muy-rapido' || lectura === 'muy-lento') && (
+          <p className="rotulo">{perfil.ajusteFecha
+            ? `El plan ya se ajustó el ${fechaCorta(perfil.ajusteFecha)}. Hacen falta ${DIAS_ENTRE_AJUSTES} días para leer el efecto antes de tocarlo de nuevo.`
+            : 'El plan ya está en su límite. Conviene corregir el diagnóstico con tu peso de hoy.'}</p>
+        )}
+        {perfil.ajusteKcal ? <p className="rotulo">Corrección acumulada del plan: {perfil.ajusteKcal > 0 ? '+' : '−'}{Math.abs(perfil.ajusteKcal)} kcal por día.</p> : null}
         <form className="fila" onSubmit={cargarPeso} style={{ alignItems: 'flex-end' }}>
           <div className="campo" style={{ flexGrow: 1 }}>
             <label htmlFor="peso-hoy">Peso de hoy, en ayunas (kg)</label>
@@ -91,6 +138,39 @@ export function Seguimiento({ estado, perfil, hoy, cambiar, editar, borrar }: { 
           </div>
           <button type="submit" className="accion" style={{ minHeight: 52 }} disabled={valido(cintura, 50, 200) === null}>Guardar</button>
         </form>
+      </section>
+
+      <section className="carta" aria-label="Apariencia">
+        <h2>Apariencia</h2>
+        <div className="tramos" role="group" aria-label="Tema">
+          {TEMAS.map((t) => (
+            <button key={t.id} type="button" aria-pressed={tema === t.id} onClick={() => { aplicarTema(t.id); setTema(t.id) }}>{t.nombre}</button>
+          ))}
+        </div>
+        <span className="rotulo">Automático sigue al modo claro u oscuro del teléfono.</span>
+      </section>
+
+      <section className="carta" aria-label="Copia de seguridad">
+        <h2>Copia de seguridad</h2>
+        <p className="glosa">Tus datos viven solo en este teléfono. Si borrás el navegador o cambiás de equipo, se pierden salvo que tengas una copia.</p>
+        {copia?.perfil ? (
+          <div className="columna" style={{ gap: 10 }}>
+            <p className="aviso" role="alert">La copia es de {copia.perfil.nombre}, con {copia.pesos.length} pesadas y {Object.keys(copia.registro).length} días registrados. Reemplaza todo lo que hay en este teléfono.</p>
+            <div className="pie" style={{ marginTop: 0 }}>
+              <button type="button" className="contorno" onClick={() => setCopia(null)}>Cancelar</button>
+              <button type="button" className="accion" onClick={() => { cambiar(copia); setCopia(null); setAvisoCopia('Copia restaurada.') }}>Restaurar</button>
+            </div>
+          </div>
+        ) : (
+          <div className="pie" style={{ marginTop: 0 }}>
+            <button type="button" className="contorno" style={{ flex: 1, padding: '0 10px' }} onClick={descargar}>Descargar copia</button>
+            <label className="contorno" style={{ flex: 1, padding: '0 10px', display: 'grid', placeItems: 'center', cursor: 'pointer' }}>
+              Restaurar copia
+              <input className="oculto" type="file" accept="application/json,.json" onChange={(e) => { void elegirCopia(e.target.files?.[0]); e.target.value = '' }} />
+            </label>
+          </div>
+        )}
+        {avisoCopia && <p className="rotulo" role="status">{avisoCopia}</p>}
       </section>
 
       <section className="carta" aria-label="Mis datos">

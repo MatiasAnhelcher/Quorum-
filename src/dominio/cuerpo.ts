@@ -1,8 +1,9 @@
 import type { Objetivo, Perfil } from './tipos'
 
 /**
- * Grasa corporal estimada con la fórmula de la Marina de Estados Unidos (Hodgdon y Beckett, 1984).
- * Es una estimación con cinta: tiene varios puntos de error y siempre se muestra como estimación.
+ * Grasa corporal estimada con la fórmula de la Marina de Estados Unidos (Hodgdon y Beckett, 1984,
+ * Naval Health Research Center, informe 84-11 para hombres).
+ * Es una estimación con cinta: el informe da un error estándar de unos 3,5 puntos de grasa, y siempre se muestra como estimación.
  * Devuelve null si las medidas no permiten calcularla.
  */
 export function grasaEstimada(p: Pick<Perfil, 'sexo' | 'alturaCm' | 'cinturaCm' | 'cuelloCm' | 'caderaCm'>): number | null {
@@ -45,9 +46,9 @@ export interface PlanDeComida {
 
 const redondear = (valor: number, paso: number) => Math.round(valor / paso) * paso
 
-export function planDeComida(p: Pick<Perfil, 'sexo' | 'edad' | 'alturaCm' | 'pesoKg' | 'diasEntreno' | 'objetivo'>): PlanDeComida {
+export function planDeComida(p: Pick<Perfil, 'sexo' | 'edad' | 'alturaCm' | 'pesoKg' | 'diasEntreno' | 'objetivo' | 'ajusteKcal'>): PlanDeComida {
   // Nunca por debajo del gasto en reposo: comer menos que eso no es un plan sostenible.
-  const kcal = redondear(Math.max(gastoDiario(p) + AJUSTE_KCAL[p.objetivo], gastoEnReposo(p)), 50)
+  const kcal = redondear(Math.max(gastoDiario(p) + AJUSTE_KCAL[p.objetivo] + (p.ajusteKcal ?? 0), gastoEnReposo(p)), 50)
   const proteinaG = redondear(p.pesoKg * 2, 5)
   const grasaG = redondear(p.pesoKg * 0.9, 5)
   const carbosG = Math.max(0, redondear((kcal - proteinaG * 4 - grasaG * 9) / 4, 5))

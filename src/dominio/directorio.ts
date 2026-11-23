@@ -47,7 +47,7 @@ export function dictamenes(p: Perfil): Dictamen[] {
         'Cuando llegás al tope de repeticiones en todas las series, la próxima vez subís el peso.',
       ],
       planB: 'Día sin tiempo: los dos primeros ejercicios de la sesión, tres series cada uno. Veinte minutos.',
-      fuente: 'Schoenfeld, Ogborn y Krieger, Sports Medicine, 2016: entrenar cada músculo dos veces por semana rinde más que una.',
+      fuente: 'Schoenfeld, Ogborn y Krieger, Sports Medicine, 2016;46(11):1689-1697. Metaanálisis de 10 estudios: entrenar cada músculo dos veces por semana da más crecimiento que una. Si tres veces rinde todavía más, no está resuelto.',
     },
     {
       id: 'nutricion',
@@ -62,7 +62,7 @@ export function dictamenes(p: Perfil): Dictamen[] {
         `Primer objetivo de cintura: menos de ${cinturaObjetivo(p.alturaCm)} cm, la mitad de tu altura.`,
       ],
       planB: 'Día caótico: cuidá solo la proteína. Las calorías se compensan con el promedio de la semana.',
-      fuente: 'Mifflin y otros, American Journal of Clinical Nutrition, 1990 (gasto en reposo). Morton y otros, British Journal of Sports Medicine, 2018 (proteína).',
+      fuente: 'Mifflin y otros, American Journal of Clinical Nutrition, 1990: ecuación de gasto en reposo, medida en 498 personas sanas. Morton y otros, British Journal of Sports Medicine, 2018;52(6):376-384: en 49 ensayos, sumar proteína dejó de dar más músculo cerca de 1,6 g por kilo, con un intervalo de 1,0 a 2,2. Quorum usa 2 g, dentro de ese intervalo, porque comés en déficit. Cintura: Ashwell, Gunn y Gibson, Obesity Reviews, 2012;13(3):275-286, la relación cintura/altura detecta el riesgo mejor que el índice de masa corporal.',
     },
     {
       id: 'sueno',
@@ -76,7 +76,7 @@ export function dictamenes(p: Perfil): Dictamen[] {
         'Última comida 2 horas antes de acostarte.',
       ],
       planB: 'Noche corta: no la compenses durmiendo hasta tarde. Levantate a tu hora y esa noche acostate 30 minutos antes.',
-      fuente: 'Watson y otros, Sleep, 2015: consenso de 7 horas o más por noche para adultos.',
+      fuente: 'Watson y otros, Sleep y Journal of Clinical Sleep Medicine, 2015: consenso de las dos sociedades de sueño de Estados Unidos. Los adultos de 18 a 60 años deberían dormir 7 horas o más por noche, de forma regular.',
     },
     {
       id: 'neuro',
@@ -88,7 +88,7 @@ export function dictamenes(p: Perfil): Dictamen[] {
         'Repasás lo mismo al día siguiente y a la semana: espaciar rinde más que repetir de corrido.',
       ],
       planB: 'Día sin tiempo: cinco minutos de repaso de memoria de lo último que estudiaste.',
-      fuente: 'Dunlosky y otros, Psychological Science in the Public Interest, 2013: recordar de memoria y espaciar el repaso son las técnicas con mejor evidencia.',
+      fuente: 'Dunlosky y otros, Psychological Science in the Public Interest, 2013: de diez técnicas de estudio, solo dos sacaron utilidad alta, ponerse a prueba de memoria y espaciar el repaso. Releer y subrayar sacaron utilidad baja.',
     },
     {
       id: 'estratega',
@@ -102,7 +102,7 @@ export function dictamenes(p: Perfil): Dictamen[] {
         'Si un acuerdo falla tres días seguidos, se achica: no se abandona.',
       ],
       planB: 'Semana complicada: sostené solo dos acuerdos, sueño y proteína. El resto vuelve cuando afloja.',
-      fuente: 'Lally y otros, European Journal of Social Psychology, 2010: un hábito tarda semanas en volverse automático, y fallar un día no lo rompe.',
+      fuente: 'Lally y otros, European Journal of Social Psychology, 2010: un hábito tardó en promedio 66 días en volverse automático, con un rango de 18 a 254 según la persona. Fallar un día suelto casi no cambió el resultado.',
     },
   ]
 }

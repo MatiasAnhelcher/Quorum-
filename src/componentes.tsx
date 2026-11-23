@@ -20,12 +20,13 @@ export interface Silla {
  * La mesa del Directorio: una silla por especialista, en el orden del día.
  * Se enciende cuando el acuerdo está cumplido. El estado nunca depende solo del color:
  * la silla votada lleva tilde, la que sigue lleva punto y la palabra "sigue".
+ * Cada silla es un botón: tocarla vota o retira el voto de ese especialista.
  */
-export function Mesa({ sillas }: { sillas: Silla[] }) {
+export function Mesa({ sillas, votar }: { sillas: Silla[]; votar: (id: string) => void }) {
   const votos = sillas.filter((s) => s.votada).length
   const resumen = sillas.map((s) => `${s.nombre}: ${s.votada ? 'cumplido' : s.sigue ? 'sigue' : 'pendiente'}`).join(', ')
   return (
-    <svg className="mesa" viewBox="0 0 330 300" role="img" aria-label={`Mesa del Directorio, ${votos} de ${sillas.length} votos. ${resumen}.`}>
+    <svg className="mesa" viewBox="0 0 330 300" role="group" aria-label={`Mesa del Directorio, ${votos} de ${sillas.length} votos. ${resumen}.`}>
       <circle cx="165" cy="158" r="112" fill="none" stroke="var(--trazo)" strokeWidth="1.5" strokeDasharray="3 7" />
       <circle cx="165" cy="158" r="68" fill="var(--papel)" stroke="var(--borde)" strokeWidth="1.5" />
       <text className="cuenta" x="165" y="166" textAnchor="middle">{votos}<tspan> de {sillas.length}</tspan></text>
@@ -35,7 +36,22 @@ export function Mesa({ sillas }: { sillas: Silla[] }) {
         if (!lugar) return null
         const color = `var(--${s.id})`
         return (
-          <g key={s.id}>
+          <g
+            key={s.id}
+            className="asiento"
+            role="button"
+            tabIndex={0}
+            aria-pressed={s.votada}
+            aria-label={`Silla de ${s.nombre}: ${s.votada ? 'cumplido' : s.sigue ? 'sigue' : 'pendiente'}`}
+            onClick={() => votar(s.id)}
+            onKeyDown={(e) => {
+              if (e.key !== 'Enter' && e.key !== ' ') return
+              e.preventDefault()
+              votar(s.id)
+            }}
+          >
+            {/* Zona de toque amplia (unos 60 px en pantalla) y anillo de foco para teclado. */}
+            <circle className="foco" cx={lugar.x} cy={lugar.y} r="31" fill="transparent" stroke="transparent" strokeWidth="2" />
             <g className={`silla${s.votada ? ' votada' : ''}`}>
               {s.votada ? (
                 <>

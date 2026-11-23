@@ -1,9 +1,11 @@
 import { describe, expect, it } from 'vitest'
 import { cinturaObjetivo, gastoEnReposo, grasaEstimada, pesoDeReferencia, planDeComida } from './cuerpo'
 import { dictamenes } from './directorio'
-import { acuerdosDelDia, alternar, constanciaSemanal, hayQuorum, sesionDelDia, type Registro } from './hoy'
+import { actaSemanal, acuerdosDelDia, alternar, constanciaSemanal, estaAchicado, hayQuorum, sesionDelDia, type Registro } from './hoy'
+import { rutinaDelDia, SESIONES } from './rutina'
 import { curva, proyectar } from './proyeccion'
-import { leerRitmo, registrar, tendencia } from './seguimiento'
+import { leerCopia } from '../datos/almacen'
+import { ajustePropuesto, leerRitmo, registrar, tendencia } from './seguimiento'
 import { fechaLarga, fechaLocal, horasDeSueno, sumarDias, sumarMinutos } from './tiempo'
 import type { Perfil } from './tipos'
 
@@ -153,5 +155,95 @@ describe('tiempo', () => {
     expect(sumarMinutos('00:30', -60)).toBe('23:30')
     expect(horasDeSueno('21:30', '05:15')).toBeCloseTo(7.75, 2)
     expect(horasDeSueno('00:30', '08:00')).toBeCloseTo(7.5, 2)
+  })
+})
+
+describe('el plan se corrige solo', () => {
+  it('no propone nada sin dato o en ritmo', () => {
+    expect(ajustePropuesto('falta-dato', false, 0, undefined, '2026-12-07')).toBeNull()
+    expect(ajustePropuesto('en-ritmo', false, 0, undefined, '2026-12-07')).toBeNull()
+  })
+  it('bajando: lento resta comida y rápido suma', () => {
+    expect(ajustePropuesto('muy-lento', false, 0, undefined, '2026-12-07')).toBe(-100)
+    expect(ajustePropuesto('muy-rapido', false, 0, undefined, '2026-12-07')).toBe(100)
+  })
+  it('subiendo es al revés', () => {
+    expect(ajustePropuesto('muy-lento', true, 0, undefined, '2026-12-07')).toBe(100)
+    expect(ajustePropuesto('muy-rapido', true, 0, undefined, '2026-12-07')).toBe(-100)
+  })
+  it('espera 14 días entre ajustes y respeta el tope', () => {
+    expect(ajustePropuesto('muy-lento', false, -100, '2026-12-01', '2026-12-07')).toBeNull()
+    expect(ajustePropuesto('muy-lento', false, -100, '2026-12-01', '2026-12-15')).toBe(-200)
+    expect(ajustePropuesto('muy-lento', false, -300, undefined, '2026-12-07')).toBeNull()
+    expect(ajustePropuesto('muy-rapido', false, -300, undefined, '2026-12-07')).toBe(-200)
+  })
+  it('el ajuste cambia calorías y carbohidratos, nunca la proteína ni el piso', () => {
+    const base = planDeComida(matias)
+    const ajustado = planDeComida({ ...matias, ajusteKcal: -100 })
+    expect(ajustado.kcal).toBe(base.kcal - 100)
+    expect(ajustado.proteinaG).toBe(base.proteinaG)
+    expect(ajustado.carbosG).toBe(base.carbosG - 25)
+    expect(planDeComida({ ...matias, ajusteKcal: -5000 }).kcal).toBeGreaterThanOrEqual(Math.floor(gastoEnReposo(matias) / 50) * 50)
+  })
+})
+
+describe('copia de seguridad', () => {
+  const estado = { version: 1 as const, perfil: matias, registro: { '2026-11-23': ['entreno' as const] }, pesos: [{ fecha: '2026-11-23', valor: 78.6 }], cinturas: [] }
+  it('lee de vuelta lo que se descargó', () => {
+    expect(leerCopia(JSON.stringify(estado))).toEqual(estado)
+  })
+  it('rechaza archivos que no son una copia de Quorum', () => {
+    expect(leerCopia('hola')).toBeNull()
+    expect(leerCopia('null')).toBeNull()
+    expect(leerCopia(JSON.stringify({ ...estado, version: 2 }))).toBeNull()
+    expect(leerCopia(JSON.stringify({ ...estado, perfil: null }))).toBeNull()
+    expect(leerCopia(JSON.stringify({ ...estado, pesos: [{ fecha: 1 }] }))).toBeNull()
+  })
+})
+
+describe('rutina', () => {
+  it('trae los ejercicios de la sesión del día y la versión mínima', () => {
+    const r = rutinaDelDia(matias, '2026-11-23')
+    expect(r?.sesion).toBe('Torso completo')
+    expect(r?.ejercicios).toHaveLength(7)
+    expect(r?.ejercicios[0]).toEqual({ nombre: 'Press de banca en Smith', series: '3×6–10', descanso: '2–3 min' })
+    expect(r?.minima.map((x) => x.nombre)).toEqual(['Press de banca en Smith', 'Remo en máquina con pecho apoyado'])
+  })
+  it('no hay rutina en día de descanso', () => {
+    expect(rutinaDelDia(matias, '2026-11-22')).toBeNull()
+  })
+  it('toda sesión de cualquier estructura tiene su rutina', () => {
+    for (const dias of [3, 4, 5] as const) {
+      for (let i = 0; i < 7; i++) {
+        const fecha = sumarDias('2026-11-23', i)
+        const sesion = sesionDelDia({ diasEntreno: dias }, fecha)
+        if (sesion) expect(SESIONES[sesion]?.length).toBeGreaterThanOrEqual(6)
+      }
+    }
+  })
+})
+
+describe('acta y acuerdos que se achican', () => {
+  // matias empezó el 16/11. Del 20 al 22 no hizo foco.
+  const r: Registro = { '2026-11-20': ['entreno', 'comida'], '2026-11-21': ['comida'], '2026-11-22': ['comida', 'sueno'] }
+  it('cuenta los votos de cada acuerdo en 7 días', () => {
+    expect(actaSemanal(r, '2026-11-23')).toEqual({ entreno: 1, comida: 3, foco: 0, plan: 0, sueno: 1 })
+  })
+  it('achica el acuerdo que falló tres días seguidos, y solo ese', () => {
+    expect(estaAchicado(r, '2026-11-23', matias.inicio, 'foco')).toBe(true)
+    expect(estaAchicado(r, '2026-11-23', matias.inicio, 'comida')).toBe(false)
+    expect(estaAchicado(r, '2026-11-23', matias.inicio, 'sueno')).toBe(false)
+    const acuerdos = acuerdosDelDia(matias, '2026-11-23', r)
+    expect(acuerdos.find((a) => a.id === 'foco')).toMatchObject({ titulo: '5 minutos de repaso de memoria', achicado: true })
+    expect(acuerdos.find((a) => a.id === 'comida')?.achicado).toBeUndefined()
+    expect(acuerdos.find((a) => a.id === 'entreno')?.titulo).toBe('Entrenar: Torso completo')
+    expect(acuerdosDelDia(matias, '2026-11-23', {}).find((a) => a.id === 'entreno')?.titulo).toBe('Entrenar 20 minutos: Torso completo')
+  })
+  it('no achica nada en los primeros tres días del plan', () => {
+    expect(estaAchicado({}, '2026-11-18', matias.inicio, 'foco')).toBe(false)
+    expect(estaAchicado({}, '2026-11-19', matias.inicio, 'foco')).toBe(true)
+  })
+  it('vuelve a su tamaño en cuanto sale un día', () => {
+    expect(estaAchicado({ ...r, '2026-11-23': ['foco'] }, '2026-11-24', matias.inicio, 'foco')).toBe(false)
   })
 })

@@ -56,3 +56,24 @@ export function leerRitmo(ritmo: number | null, esperado: { lento: number; rapid
   if (bajando) return ritmo < min ? 'muy-rapido' : 'muy-lento'
   return ritmo > max ? 'muy-rapido' : 'muy-lento'
 }
+
+/** Cada corrección mueve 100 kcal: lo bastante para notarse en dos semanas, poco para no pasarse. */
+export const PASO_KCAL = 100
+/** Tope de corrección acumulada. Más que esto ya no es un ajuste: toca rehacer el diagnóstico. */
+export const TOPE_KCAL = 300
+/** Días que tienen que pasar entre dos ajustes, para leer el efecto del anterior con dos semanas limpias. */
+export const DIAS_ENTRE_AJUSTES = 14
+
+/**
+ * El plan se corrige solo: si el promedio semanal se sale del ritmo esperado, propone mover las calorías un paso.
+ * Devuelve la corrección acumulada nueva, o null si no hay nada que cambiar.
+ * Nunca propone con dato insuficiente, ni dos veces sobre la misma tendencia, ni más allá del tope.
+ */
+export function ajustePropuesto(lectura: Lectura, sube: boolean, actual: number, ultimoAjuste: string | undefined, hoy: string): number | null {
+  if (lectura !== 'muy-rapido' && lectura !== 'muy-lento') return null
+  if (ultimoAjuste !== undefined && diasEntre(ultimoAjuste, hoy) < DIAS_ENTRE_AJUSTES) return null
+  // Bajando: si va lento se come menos y si va rápido se come más. Subiendo es al revés.
+  const comerMas = sube ? lectura === 'muy-lento' : lectura === 'muy-rapido'
+  const nuevo = actual + (comerMas ? PASO_KCAL : -PASO_KCAL)
+  return Math.abs(nuevo) > TOPE_KCAL ? null : nuevo
+}
