@@ -175,3 +175,37 @@ export function resumenDeDominio(d: Dominio, hoy: string): { superadas: number; 
   const dias = Math.max(1, Math.round((desdeFecha(hoy).getTime() - desdeFecha(d.desde).getTime()) / 86_400_000) + 1)
   return { superadas, diasFirmes: dias - conCaida, dias, ultimaCaida }
 }
+
+/** Líneas de ayuda en crisis. Solo números leídos en una fuente; para el resto, un buscador por país. */
+export interface Linea {
+  lugar: string
+  nombre: string
+  /** Números para llamar, como se marcan. */
+  telefonos: string[]
+  nota?: string
+}
+
+export const LINEAS: Linea[] = [
+  { lugar: 'Argentina', nombre: 'Línea de Prevención del Suicidio', telefonos: ['135', '0800 345 1435', '011 5275 1135'], nota: '135 es gratis desde Capital y Gran Buenos Aires. Los otros dos, desde todo el país.' },
+  { lugar: 'Estados Unidos', nombre: 'Línea 988 de Prevención del Suicidio y Crisis', telefonos: ['988'], nota: 'Llamada o mensaje de texto, gratis, las 24 horas, en español o inglés.' },
+]
+
+/** Buscador de líneas gratuitas por país, para todos los demás lugares. */
+export const BUSCADOR_DE_LINEAS = 'https://findahelpline.com'
+
+/** Plan para los días negros: se arma en frío para usarlo en caliente. Queda solo en el dispositivo. */
+export const PASOS_DEL_PLAN = [
+  { id: 'senales', pregunta: 'Mis señales de que se viene un día negro', ayuda: 'Lo que pienso, siento o hago justo antes: me aíslo, no duermo, tomo de más.' },
+  { id: 'solo', pregunta: 'Lo que puedo hacer solo para bajar un cambio', ayuda: 'Salir a caminar, una ducha, entrenar, música.' },
+  { id: 'gente', pregunta: 'Gente y lugares que me sacan de la cabeza', ayuda: 'Un compa, el gimnasio, la casa de mi vieja, un bar con gente.' },
+  { id: 'ayuda', pregunta: 'A quién le digo la verdad y le pido ayuda', ayuda: 'Nombre y teléfono de una o dos personas.' },
+  { id: 'profesional', pregunta: 'Profesional o línea a la que llamo', ayuda: 'Psicólogo, médico, guardia o la línea de tu país.' },
+  { id: 'entorno', pregunta: 'Lo que alejo de mi alcance mientras dure', ayuda: 'Pedile a alguien de confianza que te lo guarde.' },
+] as const
+
+export type PlanSeguro = Partial<Record<(typeof PASOS_DEL_PLAN)[number]['id'], string>>
+
+/** Cuántos pasos del plan tienen algo escrito. */
+export function pasosDelPlanEscritos(plan: PlanSeguro): number {
+  return PASOS_DEL_PLAN.filter((p) => (plan[p.id] ?? '').trim().length >= 3).length
+}

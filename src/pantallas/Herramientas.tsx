@@ -1,11 +1,16 @@
 import { useEffect, useState, type ReactNode } from 'react'
+import { CODIGO, type Pieza } from '../dominio/codigo'
 import { NOMBRE_CORTO } from '../dominio/directorio'
-import { EJEMPLOS, PASOS_DE_VISPERA, anotarOla, destrabadas, frenteListo, resumenDeDominio, type Dominio, type Frente, destrabeListo, intencionCompleta, lunesDe, reloj, renglones, repartoCompleto, visperaLista, type Destrabe, type Destrabes, type Intencion, type Intenciones, type Reparto, type Repartos, type Repasos, type Revision, type Revisiones, type Vispera, type Visperas } from '../dominio/herramientas'
+import { parteSemanal } from '../dominio/parte'
+import type { Bitacora } from '../dominio/rutina'
+import { BUSCADOR_DE_LINEAS, EJEMPLOS, LINEAS, PASOS_DEL_PLAN, PASOS_DE_VISPERA, pasosDelPlanEscritos, type PlanSeguro, anotarOla, destrabadas, frenteListo, resumenDeDominio, type Dominio, type Frente, destrabeListo, intencionCompleta, lunesDe, reloj, renglones, repartoCompleto, visperaLista, type Destrabe, type Destrabes, type Intencion, type Intenciones, type Reparto, type Repartos, type Repasos, type Revision, type Revisiones, type Vispera, type Visperas } from '../dominio/herramientas'
 import { actaSemanal, acuerdosDelDia, type IdAcuerdo, type Registro } from '../dominio/hoy'
 import { fechaCorta, sumarDias } from '../dominio/tiempo'
 import type { Perfil } from '../dominio/tipos'
 
-type IdHerramienta = 'destrabar' | 'impulso' | 'reparto' | 'foco' | 'si-entonces' | 'vispera' | 'revision'
+type IdHerramienta = 'fondo' | 'destrabar' | 'impulso' | 'reparto' | 'foco' | 'si-entonces' | 'vispera' | 'revision'
+
+const FONDO = { id: 'fondo' as const, nombre: 'Si estás en el fondo', para: 'Para cuando no ves salida. Ayuda ahora y un plan para los días negros.', especialista: 'sueno', minutos: '' }
 
 const LISTA: { id: IdHerramienta; nombre: string; para: string; especialista: string; minutos: string }[] = [
   { id: 'destrabar', nombre: 'Hecho, no perfecto', para: 'Achicar lo que venís pateando hasta que se pueda terminar hoy.', especialista: 'estratega', minutos: '10 min' },
@@ -159,6 +164,48 @@ function Destrabar({ hoy, destrabes, guardar }: { hoy: string; destrabes: Destra
   )
 }
 
+function EnElFondo({ plan, guardar }: { plan: PlanSeguro; guardar: (p: PlanSeguro) => void }) {
+  const escritos = pasosDelPlanEscritos(plan)
+  return (
+    <>
+      <section className="carta" aria-label="Ayuda ahora">
+        <h2>No lo pases solo</h2>
+        <p>Si estás pensando en matarte, o sentís que no hay salida, llamá ahora. Del otro lado hay una persona preparada para escucharte, gratis y sin juzgarte. Si tu vida corre peligro en este momento, llamá a emergencias o andá a una guardia.</p>
+        {LINEAS.map((l) => (
+          <div key={l.lugar} className="columna" style={{ gap: 6 }}>
+            <span className="glosa">{l.lugar} · {l.nombre}</span>
+            <div className="fila" style={{ justifyContent: 'flex-start', flexWrap: 'wrap', gap: 8 }}>
+              {l.telefonos.map((t) => <a key={t} className="accion" href={`tel:${t.replace(/\s/g, '')}`}>Llamar al {t}</a>)}
+            </div>
+            {l.nota && <span className="rotulo">{l.nota}</span>}
+          </div>
+        ))}
+        <a className="contorno" href={BUSCADOR_DE_LINEAS} target="_blank" rel="noreferrer">Buscar la línea de mi país</a>
+      </section>
+      <section className="carta chica" aria-label="Lo que es verdad">
+        <p>Lo que sentís ahora es dolor, y el dolor más fuerte no es para siempre aunque hoy parezca que sí. Pedir ayuda no te hace menos hombre: es lo más difícil y lo más valiente que se puede hacer en el fondo.</p>
+        <p className="glosa">Hoy alcanza con una sola cosa: decirle a una persona cómo estás de verdad.</p>
+      </section>
+      <section className="carta" aria-label="Mi plan para los días negros">
+        <h2>Mi plan para los días negros</h2>
+        <p className="glosa">Se arma con la cabeza fría para usarlo cuando no se puede pensar. Seis pasos, en orden. Queda solo en tu teléfono.</p>
+        {PASOS_DEL_PLAN.map((p, i) => (
+          <div key={p.id} className="campo">
+            <label htmlFor={`plan-${p.id}`}>{i + 1}. {p.pregunta}</label>
+            <textarea id={`plan-${p.id}`} rows={2} value={plan[p.id] ?? ''} placeholder={p.ayuda} onChange={(e) => guardar({ ...plan, [p.id]: e.target.value })} />
+          </div>
+        ))}
+        <span className="rotulo">{escritos} de {PASOS_DEL_PLAN.length} pasos escritos. Se guarda solo.</span>
+      </section>
+      <section className="carta chica" aria-label="Si es un compa">
+        <b>Si el que está mal es un compa</b>
+        <p className="glosa">Tomalo en serio si habla de querer morirse, de no tener salida o de ser una carga, si se aísla, regala sus cosas, se despide, o pasa de golpe de estar muy mal a estar muy tranquilo. No lo dejes solo, escuchalo sin retarlo y ayudalo a llamar a una línea o a llegar a una guardia.</p>
+      </section>
+      <p className="rotulo">Fuentes: señales de alerta y línea 988, Instituto Nacional de Salud Mental de Estados Unidos (página en español, revisada en agosto de 2024). Líneas de Argentina, según Find A Helpline. El plan sigue los seis pasos de la Intervención de Planificación de Seguridad (Stanley, Brown y otros, JAMA Psychiatry, 2018;75(9):894-900): en guardias de hospitales de veteranos, quienes armaron el plan con un profesional y recibieron seguimiento tuvieron cerca de la mitad de conductas suicidas en seis meses. De ese estudio leí resúmenes, no el artículo completo, y ahí el plan se arma con un profesional: esta pantalla no lo reemplaza. Todavía no fue revisada por un profesional de salud mental; cuando lo esté, lo vamos a decir acá.</p>
+    </>
+  )
+}
+
 const MINUTOS_DE_OLA = 10
 const SIN_FRENTE: Frente = { nombre: '', disparador: '', salida: '' }
 
@@ -304,28 +351,40 @@ function LaNocheAntes({ hoy, visperas, guardar }: { hoy: string; visperas: Vispe
 
 const VACIA: Revision = { bien: '', trabo: '', cambio: '' }
 
-function RevisionSemanal({ perfil, hoy, registro, revisiones, guardar }: { perfil: Perfil; hoy: string; registro: Registro; revisiones: Revisiones; guardar: (r: Revisiones) => void }) {
+function RevisionSemanal({ perfil, hoy, registro, bitacora, revisiones, guardar }: { perfil: Perfil; hoy: string; registro: Registro; bitacora: Bitacora; revisiones: Revisiones; guardar: (r: Revisiones) => void }) {
   const semana = lunesDe(hoy)
   const actual = revisiones[semana] ?? VACIA
   const pasada = revisiones[sumarDias(semana, -7)]
   const acta = actaSemanal(registro, hoy)
   const acuerdos = acuerdosDelDia(perfil, hoy)
   const cambiar = (parte: Partial<Revision>) => guardar({ ...revisiones, [semana]: { ...actual, ...parte } })
-  const flojo = [...acuerdos].sort((a, b) => acta[a.id] - acta[b.id])[0]
+  const parte = parteSemanal(registro, bitacora, hoy)
+  const signo = (n: number) => (n > 0 ? `+${n}` : `${n}`)
   return (
     <>
-      <section className="carta chica" aria-label="Acta de los últimos 7 días">
-        <span className="glosa">Votos de los últimos 7 días</span>
-        <ul className="acta">
-          {acuerdos.map((a) => (
-            <li key={a.id}>
-              <span className="punto" style={{ background: `var(--${a.especialista})` }} />
-              <span>{NOMBRE_CORTO[a.especialista]}</span>
-              <span className="rotulo">{acta[a.id]} de 7</span>
-            </li>
-          ))}
-        </ul>
-        {flojo && acta[flojo.id] < 4 && <span className="rotulo">La silla más floja fue {NOMBRE_CORTO[flojo.especialista]}. Es buena candidata para el cambio de la semana.</span>}
+      <section className="carta chica" aria-label="Parte de la semana">
+        <span className="glosa">Parte de los últimos 7 días</span>
+        {parte ? (
+          <>
+            <div className="fila">
+              <span className="columna" style={{ gap: 2 }}><span className="cifra media">{parte.votos}</span><span className="rotulo">votos de 35 · {signo(parte.votos - parte.votosAntes)} contra la semana anterior</span></span>
+              {(parte.kilos > 0 || parte.kilosAntes > 0) && <span className="columna" style={{ gap: 2 }}><span className="cifra media">{parte.kilos.toLocaleString('es-AR')}</span><span className="rotulo">kg movidos · antes {parte.kilosAntes.toLocaleString('es-AR')}</span></span>}
+            </div>
+            <ul className="acta">
+              {acuerdos.map((a) => (
+                <li key={a.id}>
+                  <span className="punto" style={{ background: `var(--${a.especialista})` }} />
+                  <span>{NOMBRE_CORTO[a.especialista]}</span>
+                  <span className="rotulo">{acta[a.id]} de 7</span>
+                </li>
+              ))}
+            </ul>
+            {parte.subio && <span className="rotulo">Lo que más subió: {parte.subio.nombre}, {parte.subio.diferencia} {parte.subio.diferencia === 1 ? 'voto' : 'votos'} más que la semana anterior.</span>}
+            {parte.flojo
+              ? <p className="nota"><b>Consejo de la semana · {parte.flojo.nombre}, {parte.flojo.votos} de 7</b>{parte.flojo.consejo}</p>
+              : <span className="rotulo">Ningún pilar quedó por debajo de 4 de 7. No hay nada que corregir: sostené.</span>}
+          </>
+        ) : <span className="rotulo">Todavía no hay votos para armar el parte. Sin datos no hay consejo.</span>}
       </section>
       {pasada?.cambio && <p className="nota"><b>El cambio que elegiste la semana pasada</b>{pasada.cambio}</p>}
       <section className="carta" aria-label="Preguntas de la revisión">
@@ -349,6 +408,7 @@ function RevisionSemanal({ perfil, hoy, registro, revisiones, guardar }: { perfi
 
 export interface DatosDeHerramientas {
   registro: Registro
+  bitacora: Bitacora
   intenciones: Intenciones
   revisiones: Revisiones
   repasos: Repasos
@@ -356,16 +416,41 @@ export interface DatosDeHerramientas {
   repartos: Repartos
   visperas: Visperas
   dominio: Dominio | undefined
+  planSeguro: PlanSeguro
 }
 
-export function Herramientas({ perfil, hoy, datos, cambiar, votar }: {
-  perfil: Perfil; hoy: string; datos: DatosDeHerramientas
-  cambiar: (parte: Partial<Omit<DatosDeHerramientas, 'registro'>>) => void
-  votar: (id: IdAcuerdo, extra?: Partial<Omit<DatosDeHerramientas, 'registro'>>) => void
+export function Herramientas({ perfil, hoy, datos, abrir, cambiar, votar }: {
+  perfil: Perfil; hoy: string; datos: DatosDeHerramientas; abrir?: IdHerramienta
+  cambiar: (parte: Partial<Omit<DatosDeHerramientas, 'registro' | 'bitacora'>>) => void
+  votar: (id: IdAcuerdo, extra?: Partial<Omit<DatosDeHerramientas, 'registro' | 'bitacora'>>) => void
 }) {
-  const [abierta, setAbierta] = useState<IdHerramienta | null>(null)
+  const [abierta, setAbierta] = useState<IdHerramienta | null>(abrir ?? null)
+  const [pieza, setPieza] = useState<Pieza | null>(null)
   const hechos = datos.registro[hoy] ?? []
-  const actual = LISTA.find((h) => h.id === abierta)
+  const actual = abierta === 'fondo' ? FONDO : LISTA.find((h) => h.id === abierta)
+
+  if (pieza) {
+    const destino = LISTA.find((h) => h.id === pieza.herramienta)
+    return (
+      <main className="pantalla lectura">
+        <header className="columna" style={{ gap: 6, alignItems: 'flex-start' }}>
+          <button type="button" className="enlace" onClick={() => setPieza(null)}>‹ Herramientas</button>
+          <span className="glosa">El código</span>
+          <h1>{pieza.titulo}</h1>
+          <span className="glosa">{pieza.bajada}</span>
+        </header>
+        {pieza.parrafos.map((texto) => <p key={texto}>{texto}</p>)}
+        <section className="sigue" aria-label="Para hoy">
+          <div className="columna" style={{ gap: 3 }}>
+            <span className="rotulo">Para hoy</span>
+            <span className="titulo">{pieza.accion}</span>
+          </div>
+          {destino && <button type="button" className="accion" onClick={() => { setPieza(null); setAbierta(destino.id); window.scrollTo(0, 0) }}>Abrir</button>}
+        </section>
+        <p className="rotulo">Fuente: {pieza.fuente}</p>
+      </main>
+    )
+  }
 
   if (!actual) {
     return (
@@ -386,6 +471,20 @@ export function Herramientas({ perfil, hoy, datos, cambiar, votar }: {
             <span className="glosa">{h.para}</span>
           </button>
         ))}
+        <header className="columna" style={{ gap: 2, marginTop: 12 }}>
+          <span className="glosa">Dos minutos de lectura y una acción</span>
+          <h2>El código</h2>
+        </header>
+        {CODIGO.map((c) => (
+          <button key={c.id} type="button" className="carta chica herramienta" onClick={() => { setPieza(c); window.scrollTo(0, 0) }}>
+            <b>{c.titulo}</b>
+            <span className="glosa">{c.bajada}</span>
+          </button>
+        ))}
+        <button type="button" className="carta chica herramienta" onClick={() => { setAbierta('fondo'); window.scrollTo(0, 0) }}>
+          <b>{FONDO.nombre}</b>
+          <span className="glosa">{FONDO.para}</span>
+        </button>
         <p className="rotulo">Pocas y buenas: una herramienta entra solo si tiene respaldo o se usa todas las semanas.</p>
       </main>
     )
@@ -394,11 +493,12 @@ export function Herramientas({ perfil, hoy, datos, cambiar, votar }: {
   let cuerpo: ReactNode
   if (actual.id === 'foco') cuerpo = <Foco hoy={hoy} repasos={datos.repasos} votado={hechos.includes('foco')} guardar={(texto) => { const repasos = { ...datos.repasos, [hoy]: texto }; if (hechos.includes('foco')) cambiar({ repasos }); else votar('foco', { repasos }) }} />
   else if (actual.id === 'si-entonces') cuerpo = <SiEntonces perfil={perfil} hoy={hoy} intenciones={datos.intenciones} guardar={(intenciones) => cambiar({ intenciones })} />
+  else if (actual.id === 'fondo') cuerpo = <EnElFondo plan={datos.planSeguro} guardar={(planSeguro) => cambiar({ planSeguro })} />
   else if (actual.id === 'destrabar') cuerpo = <Destrabar hoy={hoy} destrabes={datos.destrabes} guardar={(destrabes) => cambiar({ destrabes })} />
   else if (actual.id === 'impulso') cuerpo = <Impulso hoy={hoy} dominio={datos.dominio} guardar={(dominio) => cambiar({ dominio })} />
   else if (actual.id === 'reparto') cuerpo = <LoQueDepende hoy={hoy} repartos={datos.repartos} guardar={(repartos) => cambiar({ repartos })} />
   else if (actual.id === 'vispera') cuerpo = <LaNocheAntes hoy={hoy} visperas={datos.visperas} guardar={(visperas) => cambiar({ visperas })} />
-  else cuerpo = <RevisionSemanal perfil={perfil} hoy={hoy} registro={datos.registro} revisiones={datos.revisiones} guardar={(revisiones) => cambiar({ revisiones })} />
+  else cuerpo = <RevisionSemanal perfil={perfil} hoy={hoy} registro={datos.registro} bitacora={datos.bitacora} revisiones={datos.revisiones} guardar={(revisiones) => cambiar({ revisiones })} />
 
   return (
     <main className="pantalla">

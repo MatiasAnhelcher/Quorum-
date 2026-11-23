@@ -2,10 +2,12 @@ import { describe, expect, it } from 'vitest'
 import { cinturaObjetivo, gastoEnReposo, grasaEstimada, pesoDeReferencia, planDeComida } from './cuerpo'
 import { dictamenes } from './directorio'
 import { actaSemanal, acuerdosDelDia, alternar, constanciaSemanal, estaAchicado, hayQuorum, sesionDelDia, type Registro } from './hoy'
-import { EJEMPLOS, PASOS_DE_VISPERA, anotarOla, destrabadas, frenteListo, resumenDeDominio, destrabeListo, intencionCompleta, lunesDe, reloj, renglones, repartoCompleto, visperaLista } from './herramientas'
+import { BUSCADOR_DE_LINEAS, EJEMPLOS, LINEAS, PASOS_DEL_PLAN, PASOS_DE_VISPERA, pasosDelPlanEscritos, anotarOla, destrabadas, frenteListo, resumenDeDominio, destrabeListo, intencionCompleta, lunesDe, reloj, renglones, repartoCompleto, visperaLista } from './herramientas'
 import { anotarSerie, borrarUltimaSerie, leerRango, rutinaDelDia, segundosDeDescanso, semanaDeEntreno, SESIONES, sugerencia, ultimaVez, type Bitacora } from './rutina'
 import { curva, proyectar } from './proyeccion'
 import { PRINCIPIOS, camino, principioDelDia, semanaFirme } from './camino'
+import { CODIGO } from './codigo'
+import { parteSemanal } from './parte'
 import { leerCopia } from '../datos/almacen'
 import { ajustePropuesto, leerRitmo, registrar, tendencia } from './seguimiento'
 import { fechaLarga, fechaLocal, horasDeSueno, sumarDias, sumarMinutos } from './tiempo'
@@ -294,6 +296,48 @@ describe('entreno guiado', () => {
     expect(sugerencia(press, [{ kg: 40, reps: 10 }, { kg: 40, reps: 10 }])).toEqual({ indicacion: 'sumar-repeticion', kg: 40 })
     expect(sugerencia(press, [{ kg: 40, reps: 10 }, { kg: 40, reps: 8 }, { kg: 40, reps: 7 }])).toEqual({ indicacion: 'sumar-repeticion', kg: 40 })
     expect(sugerencia(press, [{ kg: 45, reps: 7 }, { kg: 45, reps: 5 }, { kg: 45, reps: 4 }])).toEqual({ indicacion: 'bajar', kg: 45 })
+  })
+})
+
+describe('parte semanal y el código', () => {
+  it('sin votos no hay parte ni consejo', () => {
+    expect(parteSemanal({}, {}, '2026-11-23')).toBeNull()
+  })
+  it('compara con la semana anterior, cuenta kilos y aconseja sobre el pilar más flojo', () => {
+    const r: Record<string, ('entreno' | 'comida' | 'foco' | 'plan' | 'sueno')[]> = {}
+    for (let i = 0; i < 7; i++) r[sumarDias('2026-11-23', -i)] = i < 5 ? ['entreno', 'comida', 'foco', 'sueno'] : ['comida']
+    r['2026-11-15'] = ['entreno', 'plan']
+    const b = { '2026-11-23': { Sentadilla: [{ kg: 60, reps: 10 }, { kg: 60, reps: 8 }] }, '2026-11-15': { Sentadilla: [{ kg: 50, reps: 10 }] }, '2026-11-01': { Sentadilla: [{ kg: 999, reps: 9 }] } }
+    const p = parteSemanal(r, b, '2026-11-23')!
+    expect(p.votos).toBe(22)
+    expect(p.votosAntes).toBe(2)
+    expect(p.kilos).toBe(1080)
+    expect(p.kilosAntes).toBe(500)
+    expect(p.flojo?.id).toBe('plan')
+    expect(p.flojo?.votos).toBe(0)
+    expect(p.subio).toEqual({ nombre: 'Nutrición', diferencia: 7 })
+  })
+  it('si ningún pilar baja de 4 de 7, no inventa un consejo', () => {
+    const r = Object.fromEntries(Array.from({ length: 4 }, (_, i) => [sumarDias('2026-11-23', -i), ['entreno' as const, 'comida' as const, 'foco' as const, 'plan' as const, 'sueno' as const]]))
+    expect(parteSemanal(r, {}, '2026-11-23')!.flojo).toBeNull()
+  })
+  it('las líneas de ayuda tienen número marcable y hay buscador para el resto del mundo', () => {
+    expect(LINEAS.length).toBeGreaterThanOrEqual(2)
+    for (const l of LINEAS) for (const t of l.telefonos) expect(t.replace(/\s/g, '')).toMatch(/^\d{3,11}$/)
+    expect(BUSCADOR_DE_LINEAS).toMatch(/^https:\/\//)
+  })
+  it('el plan para los días negros tiene seis pasos y cuenta los escritos', () => {
+    expect(PASOS_DEL_PLAN).toHaveLength(6)
+    expect(pasosDelPlanEscritos({})).toBe(0)
+    expect(pasosDelPlanEscritos({ senales: 'me aíslo', ayuda: '  ', gente: 'mi hermano' })).toBe(2)
+  })
+  it('cada pieza del código tiene texto, acción y fuente', () => {
+    expect(new Set(CODIGO.map((c) => c.id)).size).toBe(CODIGO.length)
+    for (const c of CODIGO) {
+      expect(c.parrafos.length).toBeGreaterThanOrEqual(3)
+      expect(c.accion.length).toBeGreaterThan(20)
+      expect(c.fuente.length).toBeGreaterThan(20)
+    }
   })
 })
 
