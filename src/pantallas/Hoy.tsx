@@ -1,11 +1,14 @@
 import { Mesa, Tilde } from '../componentes'
 import { NOMBRE_CORTO } from '../dominio/directorio'
-import { acuerdosDelDia, alternar, constanciaSemanal, cumplidos, MAYORIA, type Registro } from '../dominio/hoy'
+import { actaSemanal, acuerdosDelDia, alternar, constanciaSemanal, cumplidos, MAYORIA, type Registro } from '../dominio/hoy'
+import { rutinaDelDia } from '../dominio/rutina'
 import { diasEntre, fechaLarga } from '../dominio/tiempo'
 import type { Perfil } from '../dominio/tipos'
 
 export function Hoy({ perfil, hoy, registro, cambiar }: { perfil: Perfil; hoy: string; registro: Registro; cambiar: (r: Registro) => void }) {
-  const acuerdos = acuerdosDelDia(perfil, hoy)
+  const acuerdos = acuerdosDelDia(perfil, hoy, registro)
+  const rutina = rutinaDelDia(perfil, hoy)
+  const acta = actaSemanal(registro, hoy)
   const hechos = cumplidos(registro, hoy)
   const siguiente = acuerdos.find((a) => !hechos.includes(a.id))
   const faltan = MAYORIA - hechos.length
@@ -58,7 +61,7 @@ export function Hoy({ perfil, hoy, registro, cambiar }: { perfil: Perfil; hoy: s
                 <span className="titulo">{a.titulo}</span>
                 <span className="rotulo fila" style={{ justifyContent: 'flex-start', gap: 6 }}>
                   <span className="punto" style={{ background: `var(--${a.especialista})` }} />
-                  {NOMBRE_CORTO[a.especialista]}{hecho ? ' · Hecho' : ''}
+                  {NOMBRE_CORTO[a.especialista]}{hecho ? ' · Hecho' : a.achicado ? ' · Versión chica' : ''}
                 </span>
               </span>
               <span className="marca">{hecho && <Tilde />}</span>
@@ -67,13 +70,44 @@ export function Hoy({ perfil, hoy, registro, cambiar }: { perfil: Perfil; hoy: s
         })}
       </section>
 
+      {rutina && (
+        <details className="carta chica rutina">
+          <summary>
+            <span className="columna" style={{ gap: 2 }}>
+              <span className="glosa">Rutina de hoy</span>
+              <b>{rutina.sesion} · {rutina.ejercicios.length} ejercicios</b>
+            </span>
+            <span className="rotulo ver" aria-hidden="true" />
+          </summary>
+          <ol>
+            {rutina.ejercicios.map((ej) => (
+              <li key={ej.nombre}>
+                <span>{ej.nombre}</span>
+                <span className="rotulo">{ej.series} · descanso {ej.descanso}</span>
+              </li>
+            ))}
+          </ol>
+          <p className="nota"><b>Día sin tiempo</b>{rutina.minima.map((ej) => ej.nombre).join(' y ')}, tres series cada uno. Veinte minutos.</p>
+          <span className="rotulo">Cada serie termina con 1 o 2 repeticiones en reserva. Cuando llegás al tope del rango en todas las series, la próxima vez subís el peso.</span>
+        </details>
+      )}
+
       <section className="carta chica" aria-label="Constancia de la semana">
         <div className="fila">
           <span className="glosa">Últimos 7 días</span>
           <span style={{ fontSize: 13, fontWeight: 600 }}>{diasConQuorum} con quórum</span>
         </div>
         <div className="semana" aria-hidden="true">{semana.map((si, i) => <span key={i} className={si ? 'si' : ''} />)}</div>
-        <span className="rotulo">Un día sin quórum no borra nada: mañana se vuelve a votar.</span>
+        <ul className="acta" aria-label="Votos de cada especialista en 7 días">
+          {acuerdos.map((a) => (
+            <li key={a.id}>
+              <span className="punto" style={{ background: `var(--${a.especialista})` }} />
+              <span>{NOMBRE_CORTO[a.especialista]}</span>
+              <span className="rotulo">{acta[a.id]} de 7</span>
+            </li>
+          ))}
+        </ul>
+        <span className="rotulo">Un día sin quórum no borra nada: mañana se vuelve a votar. Si un acuerdo falla tres días seguidos, se achica.</span>
       </section>
     </main>
   )

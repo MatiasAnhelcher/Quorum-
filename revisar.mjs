@@ -59,6 +59,11 @@ for (const t of TAMANOS) {
   const accion = await pagina.getByRole('button', { name: 'Hecho', exact: true }).boundingBox()
   if ((!accion || accion.y + accion.height > t.height - 72)) fallas.push(`${t.nombre}: la acción de Hoy queda debajo del pliegue`)
 
+  // La rutina del día se abre y trae los ejercicios (el reloj está en lunes: torso completo).
+  await pagina.getByText('Rutina de hoy').click()
+  if (!(await pagina.getByText('Press de banca en Smith').first().isVisible())) fallas.push(`${t.nombre}: la rutina del día no muestra los ejercicios`)
+  await captura('4b-rutina')
+
   await pagina.getByRole('button', { name: 'Directorio' }).click()
   await captura('5-directorio')
   await pagina.getByRole('button', { name: 'Seguimiento' }).click()
@@ -114,6 +119,10 @@ for (const t of TAMANOS) {
     }))
   })
   await pagina.goto(URL)
+  // Dos semanas sin votar: los acuerdos aparecen en su versión chica.
+  if (!(await pagina.getByText('5 minutos de repaso de memoria').first().isVisible())) fallas.push('achicar: un acuerdo que falló tres días no se achica')
+  await pagina.waitForTimeout(500)
+  await pagina.screenshot({ path: 'capturas/390-9-acuerdos-chicos.png', fullPage: true })
   await pagina.getByRole('button', { name: 'Seguimiento' }).click()
   if (!(await pagina.getByText('De 2.300 a 2.200 kcal por día').isVisible())) fallas.push('ajuste: no aparece la propuesta con dos semanas sin cambio')
   await pagina.waitForTimeout(500)

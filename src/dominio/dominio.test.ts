@@ -1,7 +1,8 @@
 import { describe, expect, it } from 'vitest'
 import { cinturaObjetivo, gastoEnReposo, grasaEstimada, pesoDeReferencia, planDeComida } from './cuerpo'
 import { dictamenes } from './directorio'
-import { acuerdosDelDia, alternar, constanciaSemanal, hayQuorum, sesionDelDia, type Registro } from './hoy'
+import { actaSemanal, acuerdosDelDia, alternar, constanciaSemanal, estaAchicado, hayQuorum, sesionDelDia, type Registro } from './hoy'
+import { rutinaDelDia, SESIONES } from './rutina'
 import { curva, proyectar } from './proyeccion'
 import { leerCopia } from '../datos/almacen'
 import { ajustePropuesto, leerRitmo, registrar, tendencia } from './seguimiento'
@@ -197,5 +198,52 @@ describe('copia de seguridad', () => {
     expect(leerCopia(JSON.stringify({ ...estado, version: 2 }))).toBeNull()
     expect(leerCopia(JSON.stringify({ ...estado, perfil: null }))).toBeNull()
     expect(leerCopia(JSON.stringify({ ...estado, pesos: [{ fecha: 1 }] }))).toBeNull()
+  })
+})
+
+describe('rutina', () => {
+  it('trae los ejercicios de la sesión del día y la versión mínima', () => {
+    const r = rutinaDelDia(matias, '2026-11-23')
+    expect(r?.sesion).toBe('Torso completo')
+    expect(r?.ejercicios).toHaveLength(7)
+    expect(r?.ejercicios[0]).toEqual({ nombre: 'Press de banca en Smith', series: '3×6–10', descanso: '2–3 min' })
+    expect(r?.minima.map((x) => x.nombre)).toEqual(['Press de banca en Smith', 'Remo en máquina con pecho apoyado'])
+  })
+  it('no hay rutina en día de descanso', () => {
+    expect(rutinaDelDia(matias, '2026-11-22')).toBeNull()
+  })
+  it('toda sesión de cualquier estructura tiene su rutina', () => {
+    for (const dias of [3, 4, 5] as const) {
+      for (let i = 0; i < 7; i++) {
+        const fecha = sumarDias('2026-11-23', i)
+        const sesion = sesionDelDia({ diasEntreno: dias }, fecha)
+        if (sesion) expect(SESIONES[sesion]?.length).toBeGreaterThanOrEqual(6)
+      }
+    }
+  })
+})
+
+describe('acta y acuerdos que se achican', () => {
+  // matias empezó el 16/11. Del 20 al 22 no hizo foco.
+  const r: Registro = { '2026-11-20': ['entreno', 'comida'], '2026-11-21': ['comida'], '2026-11-22': ['comida', 'sueno'] }
+  it('cuenta los votos de cada acuerdo en 7 días', () => {
+    expect(actaSemanal(r, '2026-11-23')).toEqual({ entreno: 1, comida: 3, foco: 0, plan: 0, sueno: 1 })
+  })
+  it('achica el acuerdo que falló tres días seguidos, y solo ese', () => {
+    expect(estaAchicado(r, '2026-11-23', matias.inicio, 'foco')).toBe(true)
+    expect(estaAchicado(r, '2026-11-23', matias.inicio, 'comida')).toBe(false)
+    expect(estaAchicado(r, '2026-11-23', matias.inicio, 'sueno')).toBe(false)
+    const acuerdos = acuerdosDelDia(matias, '2026-11-23', r)
+    expect(acuerdos.find((a) => a.id === 'foco')).toMatchObject({ titulo: '5 minutos de repaso de memoria', achicado: true })
+    expect(acuerdos.find((a) => a.id === 'comida')?.achicado).toBeUndefined()
+    expect(acuerdos.find((a) => a.id === 'entreno')?.titulo).toBe('Entrenar: Torso completo')
+    expect(acuerdosDelDia(matias, '2026-11-23', {}).find((a) => a.id === 'entreno')?.titulo).toBe('Entrenar 20 minutos: Torso completo')
+  })
+  it('no achica nada en los primeros tres días del plan', () => {
+    expect(estaAchicado({}, '2026-11-18', matias.inicio, 'foco')).toBe(false)
+    expect(estaAchicado({}, '2026-11-19', matias.inicio, 'foco')).toBe(true)
+  })
+  it('vuelve a su tamaño en cuanto sale un día', () => {
+    expect(estaAchicado({ ...r, '2026-11-23': ['foco'] }, '2026-11-24', matias.inicio, 'foco')).toBe(false)
   })
 })

@@ -179,6 +179,16 @@ h1 { font-family: var(--titulos); font-size: 30px; font-weight: 700; letter-spac
 .semana { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 6px; }
 .semana span { height: 10px; border-radius: 999px; background: var(--linea); }
 .semana span.si { background: var(--acento); }
+.acta { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 6px 16px; font-size: 13px; }
+.acta li { display: flex; align-items: center; gap: 8px; }
+.acta li .rotulo { margin-left: auto; }
+.rutina summary { display: flex; align-items: center; justify-content: space-between; gap: 12px; min-height: 44px; cursor: pointer; list-style: none; }
+.rutina summary::-webkit-details-marker { display: none; }
+.rutina .ver::after { content: 'Ver'; font-weight: 600; color: var(--tinta); border: 1px solid var(--trazo); border-radius: 999px; padding: 8px 14px; }
+.rutina[open] .ver::after { content: 'Cerrar'; }
+.rutina ol { margin: 0; padding: 0 0 0 20px; display: flex; flex-direction: column; gap: 10px; font-size: 14px; }
+.rutina li span { display: block; }
+.rutina li span:first-child { font-weight: 600; }
 
 .barra {
   position: fixed; z-index: 5; left: 50%; transform: translateX(-50%); bottom: 0;

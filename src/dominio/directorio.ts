@@ -62,7 +62,7 @@ export function dictamenes(p: Perfil): Dictamen[] {
         `Primer objetivo de cintura: menos de ${cinturaObjetivo(p.alturaCm)} cm, la mitad de tu altura.`,
       ],
       planB: 'Día caótico: cuidá solo la proteína. Las calorías se compensan con el promedio de la semana.',
-      fuente: 'Mifflin y otros, American Journal of Clinical Nutrition, 1990: ecuación de gasto en reposo, medida en 498 personas sanas. Morton y otros, British Journal of Sports Medicine, 2018: metaanálisis de proteína y entrenamiento de fuerza. El objetivo de cintura sigue a Ashwell y otros, Obesity Reviews, 2012.',
+      fuente: 'Mifflin y otros, American Journal of Clinical Nutrition, 1990: ecuación de gasto en reposo, medida en 498 personas sanas. Morton y otros, British Journal of Sports Medicine, 2018;52(6):376-384: en 49 ensayos, sumar proteína dejó de dar más músculo cerca de 1,6 g por kilo, con un intervalo de 1,0 a 2,2. Quorum usa 2 g, dentro de ese intervalo, porque comés en déficit. Cintura: Ashwell, Gunn y Gibson, Obesity Reviews, 2012;13(3):275-286, la relación cintura/altura detecta el riesgo mejor que el índice de masa corporal.',
     },
     {
       id: 'sueno',
@@ -76,7 +76,7 @@ export function dictamenes(p: Perfil): Dictamen[] {
         'Última comida 2 horas antes de acostarte.',
       ],
       planB: 'Noche corta: no la compenses durmiendo hasta tarde. Levantate a tu hora y esa noche acostate 30 minutos antes.',
-      fuente: 'Watson y otros, Sleep, 2015: consenso de 7 horas o más por noche para adultos.',
+      fuente: 'Watson y otros, Sleep y Journal of Clinical Sleep Medicine, 2015: consenso de las dos sociedades de sueño de Estados Unidos. Los adultos de 18 a 60 años deberían dormir 7 horas o más por noche, de forma regular.',
     },
     {
       id: 'neuro',

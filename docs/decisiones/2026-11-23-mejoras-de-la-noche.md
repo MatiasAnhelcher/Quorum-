@@ -41,7 +41,18 @@ Leídas esta noche en la fuente y corregidas en `directorio.ts` para decir solo 
 | Lally y otros, EJSP 2010 (vía el resumen de la British Psychological Society) | Promedio de 66 días, rango de 18 a 254. Un día suelto perdido casi no pesa. |
 | Hodgdon y Beckett, 1984, informe 84-11 | Coeficientes de la fórmula de hombres iguales a los del código. Error estándar de unos 3,5 puntos. |
 
-**Sin leer todavía** (PubMed bloqueó la lectura automática): Morton y otros 2018 (proteína), Watson y otros 2015 (sueño) y Ashwell y otros 2012 (cintura). Se citan sin cifras nuevas. La fórmula de grasa para mujeres tampoco se contrastó con su informe original. Queda pendiente.
+| Morton y otros, Br J Sports Med 2018;52(6):376-384 | 49 ensayos y 1.863 personas. El beneficio de sumar proteína se frena en 1,62 g por kilo (intervalo 1,03 a 2,20). Ese quiebre no llegó a ser estadísticamente significativo (p = 0,079). El artículo tiene una corrección de 2020 que no se leyó. |
+| Watson y otros, Sleep y J Clin Sleep Med 2015;11(6):591-592 | Consenso: 7 horas o más por noche, de forma regular, para adultos de 18 a 60 años. |
+| Ashwell, Gunn y Gibson, Obesity Reviews 2012;13(3):275-286 | Solo se confirmó la ficha y el título: la relación cintura/altura detecta mejor el riesgo que el perímetro de cintura y el índice de masa corporal. |
+
+**Lo que sigue sin confirmar en la fuente:** el corte exacto de 0,5 (cintura menor a la mitad de la altura) de Ashwell, y la fórmula de grasa para mujeres contra su informe original. Quorum usa 2 g de proteína por kilo, que queda dentro del intervalo de Morton pero por encima de su punto medio: es una decisión de producto por comer en déficit, y así lo dice la pantalla.
+
+## Segunda tanda
+
+- **Rutina del día.** `src/dominio/rutina.ts` trae los ejercicios, series, repeticiones y descansos de cada sesión, tomados del plan definitivo de Matias (máquinas, Smith y poleas). Las estructuras de 4 y 3 días se armaron con los mismos ejercicios y rangos. En Hoy se abre con un toque y trae la versión de veinte minutos.
+- **Acuerdos que se achican.** La regla que el Directorio ya anunciaba ahora existe: si un acuerdo no se cumple en los tres días anteriores, hoy aparece en su versión chica (`estaAchicado` en `hoy.ts`). En cuanto sale un día, vuelve a su tamaño. No cuenta los primeros tres días del plan.
+- **Acta de la semana.** Hoy muestra cuántos de los últimos 7 días votó cada especialista (`actaSemanal`).
+- **Íconos.** PNG de 192 y 512, uno recortable y el de iPhone, para instalar la app en la pantalla de inicio.
 
 ## Lo que no se hizo
 
