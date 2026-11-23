@@ -1,4 +1,4 @@
-import type { Destrabes, Intenciones, Repartos, Repasos, Revisiones, Visperas } from '../dominio/herramientas'
+import type { Destrabes, Dominio, Intenciones, Repartos, Repasos, Revisiones, Visperas } from '../dominio/herramientas'
 import type { Registro } from '../dominio/hoy'
 import type { Bitacora } from '../dominio/rutina'
 import type { Medicion, Perfil } from '../dominio/tipos'
@@ -24,6 +24,8 @@ export interface Estado {
   repartos?: Repartos
   /** Preparación de la noche anterior. */
   visperas?: Visperas
+  /** El frente que la persona está dominando y su cuenta de ganas superadas y caídas. */
+  dominio?: Dominio
 }
 
 const CLAVE = 'quorum.estado'
@@ -77,7 +79,7 @@ export function leerCopia(texto: string): Estado | null {
     if (typeof registro !== 'object' || registro === null || !Object.values(registro).every(Array.isArray)) return null
     if (!esMediciones(pesos) || !esMediciones(cinturas)) return null
     const esObjeto = (v: unknown) => typeof v === 'object' && v !== null && !Array.isArray(v)
-    const { bitacora, intenciones, revisiones, repasos, destrabes, repartos, visperas } = dato
+    const { bitacora, intenciones, revisiones, repasos, destrabes, repartos, visperas, dominio } = dato
     // Lo que se sumó después del primer formato es opcional: una copia vieja sigue sirviendo.
     return {
       version: 1, perfil, registro, pesos, cinturas,
@@ -88,6 +90,7 @@ export function leerCopia(texto: string): Estado | null {
       ...(esObjeto(destrabes) ? { destrabes } : {}),
       ...(esObjeto(repartos) ? { repartos } : {}),
       ...(esObjeto(visperas) ? { visperas } : {}),
+      ...(esObjeto(dominio) && esObjeto((dominio as Dominio).frente) && esObjeto((dominio as Dominio).dias) && typeof (dominio as Dominio).desde === 'string' ? { dominio } : {}),
     }
   } catch {
     return null

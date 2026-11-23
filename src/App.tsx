@@ -80,7 +80,7 @@ export function App() {
           key={visita}
           perfil={perfil}
           hoy={hoy}
-          datos={{ registro: estado.registro, intenciones: estado.intenciones ?? {}, revisiones: estado.revisiones ?? {}, repasos: estado.repasos ?? {}, destrabes: estado.destrabes ?? {}, repartos: estado.repartos ?? {}, visperas: estado.visperas ?? {} }}
+          datos={{ registro: estado.registro, intenciones: estado.intenciones ?? {}, revisiones: estado.revisiones ?? {}, repasos: estado.repasos ?? {}, destrabes: estado.destrabes ?? {}, repartos: estado.repartos ?? {}, visperas: estado.visperas ?? {}, dominio: estado.dominio }}
           cambiar={(parte) => cambiar({ ...estado, ...parte })}
           votar={votar}
         />

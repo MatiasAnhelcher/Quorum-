@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest'
 import { cinturaObjetivo, gastoEnReposo, grasaEstimada, pesoDeReferencia, planDeComida } from './cuerpo'
 import { dictamenes } from './directorio'
 import { actaSemanal, acuerdosDelDia, alternar, constanciaSemanal, estaAchicado, hayQuorum, sesionDelDia, type Registro } from './hoy'
-import { EJEMPLOS, PASOS_DE_VISPERA, destrabadas, destrabeListo, intencionCompleta, lunesDe, reloj, renglones, repartoCompleto, visperaLista } from './herramientas'
+import { EJEMPLOS, PASOS_DE_VISPERA, anotarOla, destrabadas, frenteListo, resumenDeDominio, destrabeListo, intencionCompleta, lunesDe, reloj, renglones, repartoCompleto, visperaLista } from './herramientas'
 import { anotarSerie, borrarUltimaSerie, leerRango, rutinaDelDia, segundosDeDescanso, semanaDeEntreno, SESIONES, sugerencia, ultimaVez, type Bitacora } from './rutina'
 import { curva, proyectar } from './proyeccion'
 import { leerCopia } from '../datos/almacen'
@@ -339,11 +339,31 @@ describe('herramientas', () => {
     expect(visperaLista({ pendientes: 'Llamar\nComprar\nMandar', listos: todos.slice(1) })).toBe(false)
     expect(visperaLista({ pendientes: 'Llamar\nComprar\nMandar', listos: todos })).toBe(true)
   })
+  it('el frente necesita qué se deja, cuándo aparece y qué se hace en cambio', () => {
+    expect(frenteListo(undefined)).toBe(false)
+    expect(frenteListo({ nombre: 'El cigarrillo', disparador: 'Después de comer', salida: '' })).toBe(false)
+    expect(frenteListo({ nombre: 'El cigarrillo', disparador: 'Después de comer', salida: 'Salgo a caminar' })).toBe(true)
+  })
+  it('una caída no borra lo ganado: las ganas superadas y los días firmes solo suman', () => {
+    const frente = { nombre: 'El cigarrillo', disparador: 'Después de comer', salida: 'Salgo a caminar' }
+    let d = { frente, desde: '2026-11-20', dias: {} }
+    expect(resumenDeDominio(d, '2026-11-20')).toEqual({ superadas: 0, diasFirmes: 1, dias: 1, ultimaCaida: null })
+    d = anotarOla(d, '2026-11-20', 'pasada')
+    d = anotarOla(d, '2026-11-21', 'pasada')
+    d = anotarOla(d, '2026-11-21', 'pasada')
+    expect(resumenDeDominio(d, '2026-11-22')).toEqual({ superadas: 3, diasFirmes: 3, dias: 3, ultimaCaida: null })
+    d = anotarOla(d, '2026-11-22', 'caida')
+    d = anotarOla(d, '2026-11-22', 'caida')
+    expect(resumenDeDominio(d, '2026-11-23')).toEqual({ superadas: 3, diasFirmes: 3, dias: 4, ultimaCaida: '2026-11-22' })
+    d = anotarOla(d, '2026-11-23', 'pasada')
+    expect(resumenDeDominio(d, '2026-11-23').superadas).toBe(4)
+  })
   it('la copia de seguridad conserva la bitácora y las herramientas, y acepta copias viejas', () => {
     const base = { version: 1 as const, perfil: matias, registro: {}, pesos: [], cinturas: [] }
-    const nuevo = { ...base, bitacora: { '2026-11-23': { Plancha: [{ kg: 0, reps: 40 }] } }, intenciones: { foco: EJEMPLOS.foco }, revisiones: {}, repasos: { '2026-11-23': 'hola' }, destrabes: { '2026-11-23': { tarea: 'cv', minimo: 'una página', hora: '18:30', hecho: true } }, repartos: {}, visperas: { '2026-11-23': { pendientes: 'a', listos: ['cosas'] } } }
+    const nuevo = { ...base, bitacora: { '2026-11-23': { Plancha: [{ kg: 0, reps: 40 }] } }, intenciones: { foco: EJEMPLOS.foco }, revisiones: {}, repasos: { '2026-11-23': 'hola' }, destrabes: { '2026-11-23': { tarea: 'cv', minimo: 'una página', hora: '18:30', hecho: true } }, repartos: {}, visperas: { '2026-11-23': { pendientes: 'a', listos: ['cosas'] } }, dominio: { frente: { nombre: 'x', disparador: 'y', salida: 'z' }, desde: '2026-11-23', dias: {} } }
     expect(leerCopia(JSON.stringify(nuevo))).toEqual(nuevo)
     expect(leerCopia(JSON.stringify(base))).toEqual(base)
     expect(leerCopia(JSON.stringify({ ...base, bitacora: 'x' }))).toEqual(base)
+    expect(leerCopia(JSON.stringify({ ...base, dominio: { frente: 'x' } }))).toEqual(base)
   })
 })

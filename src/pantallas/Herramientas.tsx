@@ -1,14 +1,15 @@
 import { useEffect, useState, type ReactNode } from 'react'
 import { NOMBRE_CORTO } from '../dominio/directorio'
-import { EJEMPLOS, PASOS_DE_VISPERA, destrabadas, destrabeListo, intencionCompleta, lunesDe, reloj, renglones, repartoCompleto, visperaLista, type Destrabe, type Destrabes, type Intencion, type Intenciones, type Reparto, type Repartos, type Repasos, type Revision, type Revisiones, type Vispera, type Visperas } from '../dominio/herramientas'
+import { EJEMPLOS, PASOS_DE_VISPERA, anotarOla, destrabadas, frenteListo, resumenDeDominio, type Dominio, type Frente, destrabeListo, intencionCompleta, lunesDe, reloj, renglones, repartoCompleto, visperaLista, type Destrabe, type Destrabes, type Intencion, type Intenciones, type Reparto, type Repartos, type Repasos, type Revision, type Revisiones, type Vispera, type Visperas } from '../dominio/herramientas'
 import { actaSemanal, acuerdosDelDia, type IdAcuerdo, type Registro } from '../dominio/hoy'
 import { fechaCorta, sumarDias } from '../dominio/tiempo'
 import type { Perfil } from '../dominio/tipos'
 
-type IdHerramienta = 'destrabar' | 'reparto' | 'foco' | 'si-entonces' | 'vispera' | 'revision'
+type IdHerramienta = 'destrabar' | 'impulso' | 'reparto' | 'foco' | 'si-entonces' | 'vispera' | 'revision'
 
 const LISTA: { id: IdHerramienta; nombre: string; para: string; especialista: string; minutos: string }[] = [
   { id: 'destrabar', nombre: 'Hecho, no perfecto', para: 'Achicar lo que venís pateando hasta que se pueda terminar hoy.', especialista: 'estratega', minutos: '10 min' },
+  { id: 'impulso', nombre: 'Dominar un impulso', para: 'Para lo que querés dejar: pasar las ganas sin obedecerlas.', especialista: 'neuro', minutos: '10 min' },
   { id: 'reparto', nombre: 'Lo que depende de mí', para: 'Separar lo que podés cambiar de lo que no, y elegir un paso.', especialista: 'neuro', minutos: '5 min' },
   { id: 'foco', nombre: 'Bloque de foco', para: 'Estudiar o trabajar 25 minutos y fijar lo aprendido.', especialista: 'neuro', minutos: '25 min' },
   { id: 'si-entonces', nombre: 'Planes si-entonces', para: 'Decidir hoy qué vas a hacer cuando aparezca el obstáculo.', especialista: 'estratega', minutos: '5 min' },
@@ -158,6 +159,86 @@ function Destrabar({ hoy, destrabes, guardar }: { hoy: string; destrabes: Destra
   )
 }
 
+const MINUTOS_DE_OLA = 10
+const SIN_FRENTE: Frente = { nombre: '', disparador: '', salida: '' }
+
+function Impulso({ hoy, dominio, guardar }: { hoy: string; dominio: Dominio | undefined; guardar: (d: Dominio) => void }) {
+  const actual: Dominio = dominio ?? { frente: SIN_FRENTE, desde: hoy, dias: {} }
+  const [etapa, setEtapa] = useState<'quieto' | 'ola' | 'caida'>('quieto')
+  const [editando, setEditando] = useState(!frenteListo(actual.frente))
+  const pasados = useCronometro(etapa === 'ola')
+  const resta = Math.max(0, MINUTOS_DE_OLA * 60 - pasados)
+  const frente = (parte: Partial<Frente>) => guardar({ ...actual, frente: { ...actual.frente, ...parte } })
+  const r = resumenDeDominio(actual, hoy)
+  const listo = frenteListo(actual.frente)
+  const deHoy = actual.dias[hoy]
+
+  return (
+    <>
+      <p className="glosa">Elegí un solo frente: lo que hoy más te aleja del hombre que querés ser. Las ganas no se discuten ni se obedecen: se dejan pasar, como una ola que sube, llega al pico y baja sola.</p>
+      {editando || !listo ? (
+        <section className="carta" aria-label="Tu frente">
+          <div className="campo">
+            <label htmlFor="imp-nombre">¿Qué querés dejar?</label>
+            <input id="imp-nombre" value={actual.frente.nombre} onChange={(e) => frente({ nombre: e.target.value })} />
+          </div>
+          <div className="campo">
+            <label htmlFor="imp-disparador">¿Cuándo aparecen las ganas?</label>
+            <input id="imp-disparador" value={actual.frente.disparador} placeholder="De noche, solo, con el celular en la cama" onChange={(e) => frente({ disparador: e.target.value })} />
+          </div>
+          <div className="campo">
+            <label htmlFor="imp-salida">¿Qué vas a hacer en vez de ceder?</label>
+            <input id="imp-salida" value={actual.frente.salida} placeholder="Dejo el celular en la cocina y hago 20 flexiones" onChange={(e) => frente({ salida: e.target.value })} />
+          </div>
+          <span className="rotulo">Esto queda solo en tu teléfono. Si descargás la copia de seguridad, va adentro de ese archivo.</span>
+          {listo && <button type="button" className="accion ancha" onClick={() => setEditando(false)}>Listo</button>}
+        </section>
+      ) : (
+        <>
+          {etapa === 'quieto' && (
+            <section className="carta" aria-label="Tu frente">
+              <span className="glosa">Tu frente</span>
+              <h2>{actual.frente.nombre}</h2>
+              <p className="glosa">Si {actual.frente.disparador}, {actual.frente.salida}.</p>
+              <button type="button" className="accion ancha" onClick={() => setEtapa('ola')}>Tengo ganas ahora</button>
+              <button type="button" className="enlace" onClick={() => setEditando(true)}>Cambiar el frente</button>
+            </section>
+          )}
+          {etapa === 'ola' && (
+            <section className="carta" aria-label="La ola">
+              <span className="cifra reloj" role="timer" aria-label="La ola">{reloj(resta)}</span>
+              <p><b>No hagas nada con las ganas.</b> Fijate en qué parte del cuerpo las sentís y miralas subir y bajar, sin pelearlas y sin seguirlas.</p>
+              <p className="glosa">Mientras tanto: {actual.frente.salida}.</p>
+              <button type="button" className="accion ancha" onClick={() => { guardar(anotarOla(actual, hoy, 'pasada')); setEtapa('quieto') }}>Pasó: no cedí</button>
+              <button type="button" className="contorno" onClick={() => { guardar(anotarOla(actual, hoy, 'caida')); setEtapa('caida') }}>Cedí</button>
+            </section>
+          )}
+          {etapa === 'caida' && (
+            <section className="carta" aria-label="Después de una caída">
+              <h2>Una caída no borra lo ganado</h2>
+              <p className="glosa">No es prueba de que no tenés voluntad: es una situación que todavía no sabés manejar. Lo que hunde no es la caída sino el "ya fue, sigo". Cortala acá y aprendé de esta.</p>
+              <div className="campo">
+                <label htmlFor="imp-leccion">¿Qué situación fue y qué vas a hacer distinto la próxima?</label>
+                <textarea id="imp-leccion" rows={3} value={deHoy?.leccion ?? ''} onChange={(e) => guardar({ ...actual, dias: { ...actual.dias, [hoy]: { ...(deHoy ?? { pasadas: 0, caidas: 1 }), leccion: e.target.value } } })} />
+              </div>
+              <button type="button" className="accion ancha" onClick={() => setEtapa('quieto')}>Sigo en el camino</button>
+            </section>
+          )}
+          <section className="carta chica" aria-label="Tu cuenta">
+            <div className="fila">
+              <span className="columna" style={{ gap: 2 }}><span className="cifra media">{r.superadas}</span><span className="glosa">{r.superadas === 1 ? 'vez que no cediste' : 'veces que no cediste'}</span></span>
+              <span className="columna" style={{ gap: 2 }}><span className="cifra media">{r.diasFirmes}</span><span className="glosa">{r.diasFirmes === 1 ? 'día firme' : 'días firmes'} de {r.dias}</span></span>
+            </div>
+            <span className="rotulo">Las dos cuentas solo suman. Una caída no las vuelve a cero.</span>
+          </section>
+        </>
+      )}
+      <p className="rotulo">Fuentes: Bowen y Marlatt, Psychology of Addictive Behaviors, 2009, páginas 666-671: 123 fumadores universitarios; quienes recibieron una instrucción breve de observar las ganas sin actuar fumaron menos en los 7 días siguientes, aunque las ganas no bajaron: cambió la respuesta. Larimer, Palmer y Marlatt, Alcohol Research &amp; Health, 1999;23(2):151-160: leer la caída como falta de voluntad lleva a más culpa y hace más probable la recaída completa; leerla como un error del que se aprende, menos. Los estudios son sobre tabaco y alcohol; para otros impulsos es una extensión razonable, no un resultado medido. Los 10 minutos son una convención.</p>
+      <p className="nota"><b>Si es más grande que vos</b>Si hay una sustancia de por medio, o esto ya te cuesta el trabajo, la plata o la gente que querés, esta herramienta no alcanza: pedí ayuda profesional. Pedirla también es disciplina.</p>
+    </>
+  )
+}
+
 const SIN_REPARTO: Reparto = { asunto: '', mio: '', ajeno: '', paso: '' }
 
 function LoQueDepende({ hoy, repartos, guardar }: { hoy: string; repartos: Repartos; guardar: (r: Repartos) => void }) {
@@ -274,6 +355,7 @@ export interface DatosDeHerramientas {
   destrabes: Destrabes
   repartos: Repartos
   visperas: Visperas
+  dominio: Dominio | undefined
 }
 
 export function Herramientas({ perfil, hoy, datos, cambiar, votar }: {
@@ -289,7 +371,7 @@ export function Herramientas({ perfil, hoy, datos, cambiar, votar }: {
     return (
       <main className="pantalla">
         <header className="columna" style={{ gap: 2 }}>
-          <span className="glosa">Cortas, concretas y con su fuente</span>
+          <span className="glosa">El valor propio se entrena. Cortas, concretas y con su fuente.</span>
           <h1>Herramientas</h1>
         </header>
         {LISTA.map((h) => (
@@ -313,6 +395,7 @@ export function Herramientas({ perfil, hoy, datos, cambiar, votar }: {
   if (actual.id === 'foco') cuerpo = <Foco hoy={hoy} repasos={datos.repasos} votado={hechos.includes('foco')} guardar={(texto) => { const repasos = { ...datos.repasos, [hoy]: texto }; if (hechos.includes('foco')) cambiar({ repasos }); else votar('foco', { repasos }) }} />
   else if (actual.id === 'si-entonces') cuerpo = <SiEntonces perfil={perfil} hoy={hoy} intenciones={datos.intenciones} guardar={(intenciones) => cambiar({ intenciones })} />
   else if (actual.id === 'destrabar') cuerpo = <Destrabar hoy={hoy} destrabes={datos.destrabes} guardar={(destrabes) => cambiar({ destrabes })} />
+  else if (actual.id === 'impulso') cuerpo = <Impulso hoy={hoy} dominio={datos.dominio} guardar={(dominio) => cambiar({ dominio })} />
   else if (actual.id === 'reparto') cuerpo = <LoQueDepende hoy={hoy} repartos={datos.repartos} guardar={(repartos) => cambiar({ repartos })} />
   else if (actual.id === 'vispera') cuerpo = <LaNocheAntes hoy={hoy} visperas={datos.visperas} guardar={(visperas) => cambiar({ visperas })} />
   else cuerpo = <RevisionSemanal perfil={perfil} hoy={hoy} registro={datos.registro} revisiones={datos.revisiones} guardar={(revisiones) => cambiar({ revisiones })} />

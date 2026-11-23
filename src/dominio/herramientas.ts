@@ -119,3 +119,59 @@ export function renglones(texto: string): number {
 export function visperaLista(v: Vispera | undefined): boolean {
   return v !== undefined && renglones(v.pendientes) >= 3 && PASOS_DE_VISPERA.every((p) => v.listos.includes(p.id))
 }
+
+/** Dominar un impulso: un solo frente por vez, con su disparador y su salida. */
+export interface Frente {
+  /** Lo que la persona quiere dejar. Queda solo en su dispositivo. */
+  nombre: string
+  /** La situación en la que suelen aparecer las ganas. */
+  disparador: string
+  /** Lo que hace en vez de ceder. */
+  salida: string
+}
+
+/** Lo que pasó en un día: ganas que pasaron sin ceder, y caídas. */
+export interface Olas {
+  pasadas: number
+  caidas: number
+  /** Qué situación fue y qué cambia la próxima vez: la caída se usa para aprender. */
+  leccion?: string
+}
+
+export interface Dominio {
+  frente: Frente
+  /** Fecha en que se empezó a llevar la cuenta. */
+  desde: string
+  dias: Record<string, Olas>
+}
+
+export function frenteListo(f: Frente | undefined): f is Frente {
+  return f !== undefined && f.nombre.trim().length >= 3 && f.disparador.trim().length >= 3 && f.salida.trim().length >= 3
+}
+
+const SIN_OLAS: Olas = { pasadas: 0, caidas: 0 }
+
+export function anotarOla(d: Dominio, fecha: string, que: 'pasada' | 'caida'): Dominio {
+  const dia = d.dias[fecha] ?? SIN_OLAS
+  return { ...d, dias: { ...d.dias, [fecha]: que === 'pasada' ? { ...dia, pasadas: dia.pasadas + 1 } : { ...dia, caidas: dia.caidas + 1 } } }
+}
+
+/**
+ * Lo ganado no se pierde con una caída: las ganas superadas y los días firmes se suman siempre.
+ * Un día firme es un día, desde que se empezó, sin ninguna caída anotada.
+ */
+export function resumenDeDominio(d: Dominio, hoy: string): { superadas: number; diasFirmes: number; dias: number; ultimaCaida: string | null } {
+  let superadas = 0
+  let conCaida = 0
+  let ultimaCaida: string | null = null
+  for (const [fecha, o] of Object.entries(d.dias)) {
+    if (fecha < d.desde || fecha > hoy) continue
+    superadas += o.pasadas
+    if (o.caidas > 0) {
+      conCaida++
+      if (ultimaCaida === null || fecha > ultimaCaida) ultimaCaida = fecha
+    }
+  }
+  const dias = Math.max(1, Math.round((desdeFecha(hoy).getTime() - desdeFecha(d.desde).getTime()) / 86_400_000) + 1)
+  return { superadas, diasFirmes: dias - conCaida, dias, ultimaCaida }
+}

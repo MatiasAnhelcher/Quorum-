@@ -24,3 +24,13 @@ De todo ese material entran solo tres herramientas, cada una con una acción que
 ## Reglas que se mantienen
 
 El texto de las pantallas es propio de Quorum. No se copian frases ni marcas de ningún curso o creador. Los datos se guardan solo en el dispositivo.
+
+## Agregado el mismo día: dominar un impulso
+
+Matias aclaró que la app nace para una comunidad de hombres que quieren crecer con disciplina, y que el dominio de impulsos y adicciones es parte central. Entra una cuarta herramienta.
+
+- **Dominar un impulso.** Un solo frente por vez, con su disparador y su salida. Cuando aparecen las ganas, 10 minutos de observarlas sin actuar. Se cuentan las veces que no se cedió y los días firmes.
+- **Una caída no vuelve la cuenta a cero.** Es la regla de Quorum de no usar rachas que castigan, y acá tiene respaldo: leer la caída como falta de voluntad lleva a culpa y hace más probable la recaída completa; leerla como error del que se aprende, menos (Larimer, Palmer y Marlatt, Alcohol Res Health 1999;23(2):151-160, leído).
+- **Observar las ganas sin actuar:** Bowen y Marlatt, Psychol Addict Behav 2009, págs. 666-671 (resumen leído): 123 fumadores, menos cigarrillos en 7 días, sin diferencia en la intensidad de las ganas.
+- **Límites dichos en pantalla:** los estudios son de tabaco y alcohol; aplicarlo a otros impulsos es una extensión razonable y no un resultado medido. La herramienta no reemplaza tratamiento y lo dice.
+- Lo que la persona escribe como frente queda solo en su dispositivo.
