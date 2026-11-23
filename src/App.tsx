@@ -3,7 +3,7 @@ import { flushSync } from 'react-dom'
 import { Barra, type Seccion } from './componentes'
 import { borrarTodo, cargar, ESTADO_VACIO, guardar, type Estado } from './datos/almacen'
 import { alternar, type IdAcuerdo } from './dominio/hoy'
-import { fechaLocal } from './dominio/tiempo'
+import { diasEntre, fechaLocal } from './dominio/tiempo'
 import { Diagnostico } from './pantallas/Diagnostico'
 import { Directorio } from './pantallas/Directorio'
 import { Entreno } from './pantallas/Entreno'
@@ -23,6 +23,16 @@ export function App() {
   const [progreso, setProgreso] = useState<'seguimiento' | 'proyeccion'>('seguimiento')
   const [falla, setFalla] = useState(false)
   const hoy = fechaLocal(new Date())
+  // La apertura se muestra una vez por sesión, y nunca si la persona pidió menos movimiento.
+  const [apertura, setApertura] = useState(() => {
+    try {
+      if (window.matchMedia?.('(prefers-reduced-motion: reduce)').matches || sessionStorage.getItem('quorum.apertura')) return false
+      sessionStorage.setItem('quorum.apertura', '1')
+      return true
+    } catch {
+      return false
+    }
+  })
 
   const cambiar = useCallback((nuevo: Estado) => {
     setEstado(nuevo)
@@ -76,6 +86,12 @@ export function App() {
 
   return (
     <div className="marco">
+      {apertura && (
+        <div className="apertura" aria-hidden="true" onAnimationEnd={(e) => { if (e.target === e.currentTarget) setApertura(false) }}>
+          <b>Día {Math.max(1, diasEntre(perfil.inicio, hoy) + 1)}</b>
+          <span>en el camino</span>
+        </div>
+      )}
       {falla && <p className="aviso" role="alert" style={{ position: 'relative', zIndex: 2, padding: '12px 20px 0' }}>No se pudo guardar en este teléfono. Revisá el espacio libre o el modo privado.</p>}
       {seccion === 'hoy' && <Hoy perfil={perfil} hoy={hoy} registro={estado.registro} intenciones={estado.intenciones ?? {}} dominio={estado.dominio} cambiar={(registro) => cambiar({ ...estado, registro })} ir={ir} />}
       {seccion === 'entreno' && (

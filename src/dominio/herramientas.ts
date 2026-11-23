@@ -187,6 +187,10 @@ export interface Linea {
 
 export const LINEAS: Linea[] = [
   { lugar: 'Argentina', nombre: 'Línea de Prevención del Suicidio', telefonos: ['135', '0800 345 1435', '011 5275 1135'], nota: '135 es gratis desde Capital y Gran Buenos Aires. Los otros dos, desde todo el país.' },
+  { lugar: 'México', nombre: 'Línea de la Vida', telefonos: ['800 911 2000'], nota: 'Gratis y confidencial, las 24 horas, todos los días.' },
+  { lugar: 'España', nombre: 'Línea 024 de atención a la conducta suicida', telefonos: ['024'], nota: 'Del Ministerio de Sanidad, las 24 horas, todos los días. Emergencias: 112.' },
+  { lugar: 'Colombia', nombre: 'Línea 106 de salud mental', telefonos: ['106'], nota: 'Gratis y confidencial, las 24 horas, desde fijo o celular.' },
+  { lugar: 'Chile', nombre: 'Línea *4141 de prevención del suicidio', telefonos: ['*4141'], nota: 'Gratis, las 24 horas, desde celulares de cualquier compañía.' },
   { lugar: 'Estados Unidos', nombre: 'Línea 988 de Prevención del Suicidio y Crisis', telefonos: ['988'], nota: 'Llamada o mensaje de texto, gratis, las 24 horas, en español o inglés.' },
 ]
 
@@ -231,3 +235,12 @@ export function veredicto(m: Mensaje): Veredicto {
   if (m.motivo === 'quiero' && m.propuesta.trim().length >= 3 && m.despues.trim().length >= 3) return 'escribi'
   return 'falta'
 }
+
+/** Cómo acompañar a un compa que está mal: los cinco pasos del NIMH, dichos con palabras de Quorum. */
+export const PASOS_CON_UN_COMPA = [
+  { titulo: 'Preguntale de frente', texto: '"¿Estás pensando en suicidarte?" No es fácil, pero abre la charla. Preguntarlo no le mete la idea en la cabeza: los estudios muestran que no aumenta ni los pensamientos ni la conducta.' },
+  { titulo: 'Quedate y escuchá', texto: 'Sin retarlo, sin apurarlo y sin arreglarle la vida. Que pueda decir lo que piensa y siente. Hablarlo puede bajar esos pensamientos.' },
+  { titulo: 'Ayudalo a estar a salvo', texto: 'Preguntale si pensó cómo, y ayudalo a alejar o guardar lo que sea peligroso mientras dure la crisis.' },
+  { titulo: 'Conectalo con ayuda', texto: 'Llamen juntos a la línea de su país, o a un familiar, un amigo de confianza o un profesional. Que no quede solo con vos.' },
+  { titulo: 'Seguí en contacto', texto: 'Escribile al otro día y a la semana. El contacto que no se corta después de una crisis hace diferencia.' },
+] as const

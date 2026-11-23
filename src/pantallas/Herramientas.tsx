@@ -3,7 +3,7 @@ import { CODIGO, type Pieza } from '../dominio/codigo'
 import { NOMBRE_CORTO } from '../dominio/directorio'
 import { parteSemanal } from '../dominio/parte'
 import type { Bitacora } from '../dominio/rutina'
-import { veredicto, type Mensaje, BUSCADOR_DE_LINEAS, EJEMPLOS, LINEAS, PASOS_DEL_PLAN, PASOS_DE_VISPERA, pasosDelPlanEscritos, type PlanSeguro, anotarOla, destrabadas, frenteListo, resumenDeDominio, type Dominio, type Frente, destrabeListo, intencionCompleta, lunesDe, reloj, renglones, repartoCompleto, visperaLista, type Destrabe, type Destrabes, type Intencion, type Intenciones, type Reparto, type Repartos, type Repasos, type Revision, type Revisiones, type Vispera, type Visperas } from '../dominio/herramientas'
+import { PASOS_CON_UN_COMPA, veredicto, type Mensaje, BUSCADOR_DE_LINEAS, EJEMPLOS, LINEAS, PASOS_DEL_PLAN, PASOS_DE_VISPERA, pasosDelPlanEscritos, type PlanSeguro, anotarOla, destrabadas, frenteListo, resumenDeDominio, type Dominio, type Frente, destrabeListo, intencionCompleta, lunesDe, reloj, renglones, repartoCompleto, visperaLista, type Destrabe, type Destrabes, type Intencion, type Intenciones, type Reparto, type Repartos, type Repasos, type Revision, type Revisiones, type Vispera, type Visperas } from '../dominio/herramientas'
 import { actaSemanal, acuerdosDelDia, type IdAcuerdo, type Registro } from '../dominio/hoy'
 import { fechaCorta, sumarDias } from '../dominio/tiempo'
 import type { Perfil } from '../dominio/tipos'
@@ -198,11 +198,14 @@ function EnElFondo({ plan, guardar }: { plan: PlanSeguro; guardar: (p: PlanSegur
         ))}
         <span className="rotulo">{escritos} de {PASOS_DEL_PLAN.length} pasos escritos. Se guarda solo.</span>
       </section>
-      <section className="carta chica" aria-label="Si es un compa">
-        <b>Si el que está mal es un compa</b>
-        <p className="glosa">Tomalo en serio si habla de querer morirse, de no tener salida o de ser una carga, si se aísla, regala sus cosas, se despide, o pasa de golpe de estar muy mal a estar muy tranquilo. No lo dejes solo, escuchalo sin retarlo y ayudalo a llamar a una línea o a llegar a una guardia.</p>
+      <section className="carta" aria-label="Si es un compa">
+        <h2>Si el que está mal es un compa</h2>
+        <p className="glosa">Tomalo en serio si habla de querer morirse, de no tener salida o de ser una carga, si se aísla, regala sus cosas, se despide, o pasa de golpe de estar muy mal a estar muy tranquilo.</p>
+        <ol className="pasos">
+          {PASOS_CON_UN_COMPA.map((p) => <li key={p.titulo}><b>{p.titulo}.</b> {p.texto}</li>)}
+        </ol>
       </section>
-      <p className="rotulo">Fuentes: señales de alerta y línea 988, Instituto Nacional de Salud Mental de Estados Unidos (página en español, revisada en agosto de 2024). Líneas de Argentina, según Find A Helpline. El plan sigue los seis pasos de la Intervención de Planificación de Seguridad (Stanley, Brown y otros, JAMA Psychiatry, 2018;75(9):894-900): en guardias de hospitales de veteranos, quienes armaron el plan con un profesional y recibieron seguimiento tuvieron cerca de la mitad de conductas suicidas en seis meses. De ese estudio leí resúmenes, no el artículo completo, y ahí el plan se arma con un profesional: esta pantalla no lo reemplaza. Todavía no fue revisada por un profesional de salud mental; cuando lo esté, lo vamos a decir acá.</p>
+      <p className="rotulo">Fuentes: señales de alerta, línea 988 y los cinco pasos para acompañar, Instituto Nacional de Salud Mental de Estados Unidos (páginas en español, revisadas en 2024; publicación SOM 24-4315). Líneas: Argentina y México según Find A Helpline (México también en un cuadernillo de la Secretaría de Salud), España según la Comunidad de Madrid, Colombia según su Ministerio de Salud y Chile según su Ministerio de Salud. Verificadas el 23/11/2026. El plan sigue los seis pasos de la Intervención de Planificación de Seguridad (Stanley, Brown y otros, JAMA Psychiatry, 2018;75(9):894-900): en guardias de hospitales de veteranos, quienes armaron el plan con un profesional y recibieron seguimiento tuvieron cerca de la mitad de conductas suicidas en seis meses. De ese estudio leí resúmenes, no el artículo completo, y ahí el plan se arma con un profesional: esta pantalla no lo reemplaza. Todavía no fue revisada por un profesional de salud mental; cuando lo esté, lo vamos a decir acá.</p>
     </>
   )
 }
