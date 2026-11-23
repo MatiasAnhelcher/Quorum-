@@ -26,7 +26,18 @@ for (const t of TAMANOS) {
   const captura = async (nombre) => {
     await pagina.waitForTimeout(700)
     const desborde = await pagina.evaluate(() => document.documentElement.scrollWidth - window.innerWidth)
-    if (desborde > 0) fallas.push(`${t.nombre}: ${nombre} se desborda ${desborde}px a lo ancho`)
+    if (desborde > 0) {
+      // Nombra el elemento que más se pasa del ancho, para no tener que buscarlo a ojo.
+      const culpable = await pagina.evaluate(() => {
+        let peor = null
+        for (const e of document.querySelectorAll('body *')) {
+          const r = e.getBoundingClientRect()
+          if (r.right > window.innerWidth + 1 && (!peor || r.right > peor.r)) peor = { r: r.right, que: `${e.tagName.toLowerCase()}.${e.className} "${(e.textContent || '').slice(0, 40)}"` }
+        }
+        return peor?.que ?? 'sin identificar'
+      })
+      fallas.push(`${t.nombre}: ${nombre} se desborda ${desborde}px a lo ancho (${culpable})`)
+    }
     await pagina.screenshot({ path: `capturas/${t.nombre}-${nombre}.png`, fullPage: true, animations: 'disabled' })
   }
   // Reloj fijo: lunes 23/11/2026 a las 11:00, hora local.

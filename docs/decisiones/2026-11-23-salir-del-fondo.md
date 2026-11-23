@@ -27,3 +27,10 @@ Revisión de esta pantalla por un profesional de salud mental (condición marcad
 Del análisis del proyecto sobre este público se toma la regla de tono: duro con la conducta, nunca con la persona, y nunca contra las mujeres. "Simp" nombra una conducta ("actuar de simp"), no a alguien. "Te usa" solo con un patrón claro; si no, "parece que te usa". En la pantalla de crisis no van exigencias, sarcasmo ni "aguantá".
 
 "Antes de escribirle" son tres preguntas (interés o ansiedad, propuesta concreta, qué hago si no responde). Reemplaza el "no le escribas" por mostrar interés de frente una vez y aceptar la respuesta. No guarda nada. Es criterio propio y la pantalla lo dice.
+
+## Agregado: más líneas, guía para acompañar y apertura
+
+- Líneas sumadas, cada una leída en su fuente el 23/11/2026: México, Línea de la Vida 800 911 2000 (Find A Helpline y cuadernillo de la Secretaría de Salud); España, 024 (Comunidad de Madrid, línea del Ministerio de Sanidad); Colombia, 106 (Ministerio de Salud); Chile, *4141 desde celulares (Ministerio de Salud). Conviene revisarlas cada seis meses: los números cambian.
+- "Si el que está mal es un compa" sigue los cinco pasos del NIMH (publicación SOM 24-4315, revisada en 2024): preguntar de frente, escuchar, ayudar a estar a salvo, conectar con ayuda y seguir en contacto. Esa página afirma que preguntar por el suicidio no aumenta los pensamientos ni la conducta.
+- Apertura: al abrir la app, una vez por sesión, aparece el día del camino en pantalla completa durante un segundo y medio y se abre hacia la portada. No bloquea toques y no se muestra con movimiento reducido.
+- El portón de humo ahora nombra el elemento que se desborda.
