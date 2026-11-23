@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest'
 import { cinturaObjetivo, gastoEnReposo, grasaEstimada, pesoDeReferencia, planDeComida } from './cuerpo'
 import { dictamenes } from './directorio'
 import { actaSemanal, acuerdosDelDia, alternar, constanciaSemanal, estaAchicado, hayQuorum, sesionDelDia, type Registro } from './hoy'
-import { EJEMPLOS, intencionCompleta, lunesDe, reloj } from './herramientas'
+import { EJEMPLOS, PASOS_DE_VISPERA, destrabadas, destrabeListo, intencionCompleta, lunesDe, reloj, renglones, repartoCompleto, visperaLista } from './herramientas'
 import { anotarSerie, borrarUltimaSerie, leerRango, rutinaDelDia, segundosDeDescanso, semanaDeEntreno, SESIONES, sugerencia, ultimaVez, type Bitacora } from './rutina'
 import { curva, proyectar } from './proyeccion'
 import { leerCopia } from '../datos/almacen'
@@ -313,9 +313,35 @@ describe('herramientas', () => {
     expect(reloj(59.2)).toBe('01:00')
     expect(reloj(-3)).toBe('00:00')
   })
+  it('una tarea trabada arranca cuando tiene mínimo y hora', () => {
+    expect(destrabeListo(undefined)).toBe(false)
+    expect(destrabeListo({ tarea: 'Armar el currículum', minimo: 'Una página', hora: '' })).toBe(false)
+    expect(destrabeListo({ tarea: 'Armar el currículum', minimo: '  ', hora: '18:30' })).toBe(false)
+    expect(destrabeListo({ tarea: 'Armar el currículum', minimo: 'Una página', hora: '25:00' })).toBe(false)
+    expect(destrabeListo({ tarea: 'Armar el currículum', minimo: 'Una página', hora: '18:30' })).toBe(true)
+  })
+  it('cuenta solo lo terminado en los últimos 7 días', () => {
+    const d = { tarea: 'algo', minimo: 'poco', hora: '10:00' }
+    const todos = { '2026-11-16': { ...d, hecho: true }, '2026-11-17': { ...d, hecho: true }, '2026-11-20': d, '2026-11-23': { ...d, hecho: true }, '2026-11-24': { ...d, hecho: true } }
+    expect(destrabadas(todos, '2026-11-23')).toBe(2)
+    expect(destrabadas({}, '2026-11-23')).toBe(0)
+  })
+  it('el reparto pide un paso propio; lo ajeno puede quedar vacío', () => {
+    expect(repartoCompleto(undefined)).toBe(false)
+    expect(repartoCompleto({ asunto: 'La entrevista', mio: 'Prepararme', ajeno: 'Si me eligen', paso: '' })).toBe(false)
+    expect(repartoCompleto({ asunto: 'La entrevista', mio: 'Prepararme', ajeno: '', paso: 'Ensayar la apertura' })).toBe(true)
+  })
+  it('la víspera cierra con tres pendientes escritos y todos los pasos', () => {
+    const todos = PASOS_DE_VISPERA.map((p) => p.id)
+    expect(renglones('Llamar al contador\n\n  \nComprar pollo\nx')).toBe(2)
+    expect(visperaLista(undefined)).toBe(false)
+    expect(visperaLista({ pendientes: 'uno solo', listos: todos })).toBe(false)
+    expect(visperaLista({ pendientes: 'Llamar\nComprar\nMandar', listos: todos.slice(1) })).toBe(false)
+    expect(visperaLista({ pendientes: 'Llamar\nComprar\nMandar', listos: todos })).toBe(true)
+  })
   it('la copia de seguridad conserva la bitácora y las herramientas, y acepta copias viejas', () => {
     const base = { version: 1 as const, perfil: matias, registro: {}, pesos: [], cinturas: [] }
-    const nuevo = { ...base, bitacora: { '2026-11-23': { Plancha: [{ kg: 0, reps: 40 }] } }, intenciones: { foco: EJEMPLOS.foco }, revisiones: {}, repasos: { '2026-11-23': 'hola' } }
+    const nuevo = { ...base, bitacora: { '2026-11-23': { Plancha: [{ kg: 0, reps: 40 }] } }, intenciones: { foco: EJEMPLOS.foco }, revisiones: {}, repasos: { '2026-11-23': 'hola' }, destrabes: { '2026-11-23': { tarea: 'cv', minimo: 'una página', hora: '18:30', hecho: true } }, repartos: {}, visperas: { '2026-11-23': { pendientes: 'a', listos: ['cosas'] } } }
     expect(leerCopia(JSON.stringify(nuevo))).toEqual(nuevo)
     expect(leerCopia(JSON.stringify(base))).toEqual(base)
     expect(leerCopia(JSON.stringify({ ...base, bitacora: 'x' }))).toEqual(base)

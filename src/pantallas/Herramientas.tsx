@@ -1,15 +1,18 @@
 import { useEffect, useState, type ReactNode } from 'react'
 import { NOMBRE_CORTO } from '../dominio/directorio'
-import { EJEMPLOS, intencionCompleta, lunesDe, reloj, type Intencion, type Intenciones, type Repasos, type Revision, type Revisiones } from '../dominio/herramientas'
+import { EJEMPLOS, PASOS_DE_VISPERA, destrabadas, destrabeListo, intencionCompleta, lunesDe, reloj, renglones, repartoCompleto, visperaLista, type Destrabe, type Destrabes, type Intencion, type Intenciones, type Reparto, type Repartos, type Repasos, type Revision, type Revisiones, type Vispera, type Visperas } from '../dominio/herramientas'
 import { actaSemanal, acuerdosDelDia, type IdAcuerdo, type Registro } from '../dominio/hoy'
 import { fechaCorta, sumarDias } from '../dominio/tiempo'
 import type { Perfil } from '../dominio/tipos'
 
-type IdHerramienta = 'foco' | 'si-entonces' | 'revision'
+type IdHerramienta = 'destrabar' | 'reparto' | 'foco' | 'si-entonces' | 'vispera' | 'revision'
 
 const LISTA: { id: IdHerramienta; nombre: string; para: string; especialista: string; minutos: string }[] = [
+  { id: 'destrabar', nombre: 'Hecho, no perfecto', para: 'Achicar lo que venís pateando hasta que se pueda terminar hoy.', especialista: 'estratega', minutos: '10 min' },
+  { id: 'reparto', nombre: 'Lo que depende de mí', para: 'Separar lo que podés cambiar de lo que no, y elegir un paso.', especialista: 'neuro', minutos: '5 min' },
   { id: 'foco', nombre: 'Bloque de foco', para: 'Estudiar o trabajar 25 minutos y fijar lo aprendido.', especialista: 'neuro', minutos: '25 min' },
   { id: 'si-entonces', nombre: 'Planes si-entonces', para: 'Decidir hoy qué vas a hacer cuando aparezca el obstáculo.', especialista: 'estratega', minutos: '5 min' },
+  { id: 'vispera', nombre: 'La noche antes', para: 'Sacar los pendientes de la cabeza y dejar mañana armado.', especialista: 'sueno', minutos: '5 min' },
   { id: 'revision', nombre: 'Revisión de la semana', para: 'Mirar qué funcionó y elegir un solo cambio.', especialista: 'estratega', minutos: '5 min' },
 ]
 
@@ -107,6 +110,117 @@ function SiEntonces({ perfil, hoy, intenciones, guardar }: { perfil: Perfil; hoy
   )
 }
 
+const MINUTOS_DE_ARRANQUE = 10
+const SIN_DESTRABE: Destrabe = { tarea: '', minimo: '', hora: '' }
+
+function Destrabar({ hoy, destrabes, guardar }: { hoy: string; destrabes: Destrabes; guardar: (d: Destrabes) => void }) {
+  const actual = destrabes[hoy] ?? SIN_DESTRABE
+  const [corriendo, setCorriendo] = useState(false)
+  const pasados = useCronometro(corriendo)
+  const resta = MINUTOS_DE_ARRANQUE * 60 - pasados
+  useEffect(() => {
+    if (corriendo && resta <= 0) setCorriendo(false)
+  }, [corriendo, resta])
+  const cambiar = (parte: Partial<Destrabe>) => guardar({ ...destrabes, [hoy]: { ...actual, ...parte } })
+  const semana = destrabadas(destrabes, hoy)
+  return (
+    <>
+      <p className="glosa">Lo que no arranca casi nunca es por falta de tiempo: es porque la versión que imaginás es demasiado grande. Achicala hasta que no dé miedo, ponele hora y terminá esa. Mañana la mejorás.</p>
+      <section className="carta" aria-label="Tarea trabada">
+        <div className="campo">
+          <label htmlFor="des-tarea">¿Qué venís pateando?</label>
+          <input id="des-tarea" value={actual.tarea} placeholder="Armar el currículum" onChange={(e) => cambiar({ tarea: e.target.value })} />
+        </div>
+        <div className="campo">
+          <label htmlFor="des-minimo">La versión más chica que igual cuenta como hecha</label>
+          <input id="des-minimo" value={actual.minimo} placeholder="Una página, sin diseño, con los tres últimos trabajos" onChange={(e) => cambiar({ minimo: e.target.value })} />
+        </div>
+        <div className="campo">
+          <label htmlFor="des-hora">¿A qué hora de hoy?</label>
+          <input id="des-hora" type="time" value={actual.hora} onChange={(e) => cambiar({ hora: e.target.value })} />
+        </div>
+        {!destrabeListo(actual) && <span className="rotulo">Sin hora no es un plan: es una intención.</span>}
+      </section>
+      {destrabeListo(actual) && !actual.hecho && (
+        <section className="carta" aria-label="Arranque">
+          <span className="cifra reloj" role="timer" aria-label="Arranque">{reloj(corriendo ? resta : MINUTOS_DE_ARRANQUE * 60)}</span>
+          <p className="glosa">Diez minutos de la versión chica. Si al terminar querés seguir, seguís. Si no, ya avanzaste.</p>
+          {!corriendo && <button type="button" className="accion ancha" onClick={() => setCorriendo(true)}>Arrancar 10 minutos</button>}
+          <button type="button" className="contorno" onClick={() => { setCorriendo(false); cambiar({ hecho: true }) }}>Hecho: terminé la versión chica</button>
+        </section>
+      )}
+      {actual.hecho && (
+        <p className="nota"><b>Hecho</b>{actual.minimo}. No quedó perfecto y está terminado, que es lo que vale.</p>
+      )}
+      {semana > 0 && <p className="rotulo">Destrabaste {semana} {semana === 1 ? 'tarea' : 'tareas'} en los últimos 7 días.</p>}
+      <p className="rotulo">Respaldo: ponerle hora y lugar a la acción es un plan si-entonces (Gollwitzer y Sheeran, 2006, 94 pruebas, d = 0,65). Achicar la tarea y los 10 minutos son práctica de oficio, no un número con estudio propio.</p>
+    </>
+  )
+}
+
+const SIN_REPARTO: Reparto = { asunto: '', mio: '', ajeno: '', paso: '' }
+
+function LoQueDepende({ hoy, repartos, guardar }: { hoy: string; repartos: Repartos; guardar: (r: Repartos) => void }) {
+  const actual = repartos[hoy] ?? SIN_REPARTO
+  const cambiar = (parte: Partial<Reparto>) => guardar({ ...repartos, [hoy]: { ...actual, ...parte } })
+  return (
+    <>
+      <p className="glosa">Para cuando algo te da vueltas en la cabeza: una discusión, un rechazo, un resultado que no llega. El valor propio se arma con lo que hacés, no con lo que te toca.</p>
+      <section className="carta" aria-label="Reparto">
+        <div className="campo">
+          <label htmlFor="rep-asunto">¿Qué te está pesando?</label>
+          <input id="rep-asunto" value={actual.asunto} onChange={(e) => cambiar({ asunto: e.target.value })} />
+        </div>
+        <div className="campo">
+          <label htmlFor="rep-ajeno">No depende de mí</label>
+          <textarea id="rep-ajeno" rows={3} value={actual.ajeno} placeholder="Lo que el otro piensa, dice o decide. Lo que ya pasó." onChange={(e) => cambiar({ ajeno: e.target.value })} />
+        </div>
+        <div className="campo">
+          <label htmlFor="rep-mio">Depende de mí</label>
+          <textarea id="rep-mio" rows={3} value={actual.mio} placeholder="Cómo lo interpreto, qué decido y qué hago hoy." onChange={(e) => cambiar({ mio: e.target.value })} />
+        </div>
+        <div className="campo">
+          <label htmlFor="rep-paso">Un paso de hoy, sacado de lo que depende de mí</label>
+          <input id="rep-paso" value={actual.paso} onChange={(e) => cambiar({ paso: e.target.value })} />
+        </div>
+        <span className="rotulo">{repartoCompleto(actual) ? 'Listo. Lo de arriba se suelta; el paso se hace.' : 'Se guarda sola mientras escribís.'}</span>
+      </section>
+      <p className="rotulo">Fuente: Epicteto, Manual, secciones 1 y 5. Dependen de nosotros la opinión, el impulso, el deseo y el rechazo; no dependen el cuerpo, los bienes, la reputación ni los cargos. Lo que perturba no son los hechos sino la opinión sobre ellos. Es filosofía con dos mil años de uso, no un ensayo clínico.</p>
+    </>
+  )
+}
+
+const SIN_VISPERA: Vispera = { pendientes: '', listos: [] }
+
+function LaNocheAntes({ hoy, visperas, guardar }: { hoy: string; visperas: Visperas; guardar: (v: Visperas) => void }) {
+  const actual = visperas[hoy] ?? SIN_VISPERA
+  const cambiar = (parte: Partial<Vispera>) => guardar({ ...visperas, [hoy]: { ...actual, ...parte } })
+  const alternar = (id: string) => cambiar({ listos: actual.listos.includes(id) ? actual.listos.filter((l) => l !== id) : [...actual.listos, id] })
+  const escritos = renglones(actual.pendientes)
+  return (
+    <>
+      <p className="glosa">Cinco minutos antes de acostarte, sobre todo si mañana es un día importante. Lo que queda escrito deja de darte vueltas en la cama.</p>
+      <section className="carta" aria-label="Pendientes">
+        <div className="campo">
+          <label htmlFor="vis-pendientes">Todo lo que tenés que hacer mañana y en los próximos días, uno por renglón y bien específico</label>
+          <textarea id="vis-pendientes" rows={7} value={actual.pendientes} placeholder={'Llamar al contador antes de las 10\nComprar pollo y arroz\nMandar el presupuesto a Laura'} onChange={(e) => cambiar({ pendientes: e.target.value })} />
+        </div>
+        <span className="rotulo">{escritos} {escritos === 1 ? 'pendiente escrito' : 'pendientes escritos'}. Cuanto más específico, mejor.</span>
+      </section>
+      <section className="carta chica" aria-label="Preparación">
+        {PASOS_DE_VISPERA.map((p) => (
+          <label key={p.id} className="tilde">
+            <input type="checkbox" checked={actual.listos.includes(p.id)} onChange={() => alternar(p.id)} />
+            <span>{p.texto}</span>
+          </label>
+        ))}
+      </section>
+      {visperaLista(actual) && <p className="nota"><b>Mañana está armado</b>Ya no hay nada que resolver esta noche. A dormir.</p>}
+      <p className="rotulo">Fuente: Scullin y otros, Journal of Experimental Psychology: General, 2018;147(1):139-146. 57 adultos jóvenes sanos, medidos con polisomnografía: quienes escribieron 5 minutos su lista de pendientes se durmieron más rápido que quienes escribieron lo ya hecho, y más rápido cuanto más específica fue la lista. Es un solo estudio chico y no se probó en personas con insomnio. Los tres pasos de preparación son práctica, no parte del estudio.</p>
+    </>
+  )
+}
+
 const VACIA: Revision = { bien: '', trabo: '', cambio: '' }
 
 function RevisionSemanal({ perfil, hoy, registro, revisiones, guardar }: { perfil: Perfil; hoy: string; registro: Registro; revisiones: Revisiones; guardar: (r: Revisiones) => void }) {
@@ -157,6 +271,9 @@ export interface DatosDeHerramientas {
   intenciones: Intenciones
   revisiones: Revisiones
   repasos: Repasos
+  destrabes: Destrabes
+  repartos: Repartos
+  visperas: Visperas
 }
 
 export function Herramientas({ perfil, hoy, datos, cambiar, votar }: {
@@ -195,6 +312,9 @@ export function Herramientas({ perfil, hoy, datos, cambiar, votar }: {
   let cuerpo: ReactNode
   if (actual.id === 'foco') cuerpo = <Foco hoy={hoy} repasos={datos.repasos} votado={hechos.includes('foco')} guardar={(texto) => { const repasos = { ...datos.repasos, [hoy]: texto }; if (hechos.includes('foco')) cambiar({ repasos }); else votar('foco', { repasos }) }} />
   else if (actual.id === 'si-entonces') cuerpo = <SiEntonces perfil={perfil} hoy={hoy} intenciones={datos.intenciones} guardar={(intenciones) => cambiar({ intenciones })} />
+  else if (actual.id === 'destrabar') cuerpo = <Destrabar hoy={hoy} destrabes={datos.destrabes} guardar={(destrabes) => cambiar({ destrabes })} />
+  else if (actual.id === 'reparto') cuerpo = <LoQueDepende hoy={hoy} repartos={datos.repartos} guardar={(repartos) => cambiar({ repartos })} />
+  else if (actual.id === 'vispera') cuerpo = <LaNocheAntes hoy={hoy} visperas={datos.visperas} guardar={(visperas) => cambiar({ visperas })} />
   else cuerpo = <RevisionSemanal perfil={perfil} hoy={hoy} registro={datos.registro} revisiones={datos.revisiones} guardar={(revisiones) => cambiar({ revisiones })} />
 
   return (

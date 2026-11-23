@@ -240,6 +240,9 @@ h1 { font-family: var(--titulos); font-size: 30px; font-weight: 700; letter-spac
 
 .dictamen ul { margin: 0; padding-left: 18px; display: flex; flex-direction: column; gap: 6px; color: var(--tinta); font-size: 14px; }
 .dictamen .veredicto { font-family: var(--titulos); font-size: 20px; font-weight: 700; line-height: 1.2; }
+/* Casillas de preparación: toda la fila se puede tocar. */
+.tilde { display: flex; align-items: center; gap: 12px; min-height: 44px; font-size: 15px; cursor: pointer; }
+.tilde input { width: 22px; height: 22px; accent-color: var(--tinta); flex: none; }
 .nota { background: var(--papel-2); border-radius: var(--radio-s); padding: 12px 14px; font-size: 13px; }
 .nota b { display: block; font-size: 12px; color: var(--glosa); font-weight: 600; margin-bottom: 2px; }
 .aviso { color: var(--aviso); font-size: 13px; }

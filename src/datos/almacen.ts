@@ -1,4 +1,4 @@
-import type { Intenciones, Repasos, Revisiones } from '../dominio/herramientas'
+import type { Destrabes, Intenciones, Repartos, Repasos, Revisiones, Visperas } from '../dominio/herramientas'
 import type { Registro } from '../dominio/hoy'
 import type { Bitacora } from '../dominio/rutina'
 import type { Medicion, Perfil } from '../dominio/tipos'
@@ -18,6 +18,12 @@ export interface Estado {
   revisiones?: Revisiones
   /** Lo que la persona escribió de memoria después de cada bloque de foco. */
   repasos?: Repasos
+  /** Tareas trabadas, achicadas a su versión mínima: una por día. */
+  destrabes?: Destrabes
+  /** Preocupaciones partidas en lo que depende de la persona y lo que no. */
+  repartos?: Repartos
+  /** Preparación de la noche anterior. */
+  visperas?: Visperas
 }
 
 const CLAVE = 'quorum.estado'
@@ -71,7 +77,7 @@ export function leerCopia(texto: string): Estado | null {
     if (typeof registro !== 'object' || registro === null || !Object.values(registro).every(Array.isArray)) return null
     if (!esMediciones(pesos) || !esMediciones(cinturas)) return null
     const esObjeto = (v: unknown) => typeof v === 'object' && v !== null && !Array.isArray(v)
-    const { bitacora, intenciones, revisiones, repasos } = dato
+    const { bitacora, intenciones, revisiones, repasos, destrabes, repartos, visperas } = dato
     // Lo que se sumó después del primer formato es opcional: una copia vieja sigue sirviendo.
     return {
       version: 1, perfil, registro, pesos, cinturas,
@@ -79,6 +85,9 @@ export function leerCopia(texto: string): Estado | null {
       ...(esObjeto(intenciones) ? { intenciones } : {}),
       ...(esObjeto(revisiones) ? { revisiones } : {}),
       ...(esObjeto(repasos) ? { repasos } : {}),
+      ...(esObjeto(destrabes) ? { destrabes } : {}),
+      ...(esObjeto(repartos) ? { repartos } : {}),
+      ...(esObjeto(visperas) ? { visperas } : {}),
     }
   } catch {
     return null
